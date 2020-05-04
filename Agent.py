@@ -1,5 +1,6 @@
 from enum import Enum
 from queue import Queue
+from Chips import Chips
 
 class Desire(Enum):
     CALL = "call"
@@ -23,8 +24,9 @@ class Agent:
     action = Action.NONE
     plan = Queue.queue 
 
-    def __init__(self,):
-        this.money = 5000
+    def __init__(self, identifier):
+        self.id = identifier
+        self.money = Chips(5000)
     
 #################################################
 ####            DECISION-MAKING             #####
@@ -61,10 +63,13 @@ class Agent:
 
     def execute(self):
         pass
+
     def impossibleIntention(self):
         pass
+
     def succeededIntention(self):
         pass
+
     def reconsider(self):
         pass
 
@@ -105,7 +110,7 @@ class Agent:
         pass
     
     def checkMyChips():
-        pass    
+        return self.money.getCurrent()    
 
     def checkTheirChips():
         pass
