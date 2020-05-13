@@ -47,6 +47,13 @@ class Deck:
             return False
         else:
             return True
+    
+    # checks if specific card is in the deck, by the card name
+    def containsCard(self, cardName):
+        for card in self.cards:
+            if cardName == card.getName():
+                return True
+        return False
 
     # shuffles the deck
     def shuffle(self):
