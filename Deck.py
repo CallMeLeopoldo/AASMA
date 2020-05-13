@@ -2,10 +2,11 @@ import random
 
 class Card:
 
-    def __init__(self, value, suit):
+    def __init__(self, value, suit, numVal):
         self.value = value
         self.suit = suit 
         self.name = value + " of " + suit
+        self.numVal = numVal
 
     def getValue(self):
         return self.value
@@ -15,6 +16,9 @@ class Card:
     
     def getName(self):
         return self.name
+
+    def getNumericalValue(self):
+        return self.numVal
     
     # checks whether other card is the same as this card
     def isEqual(self, other):
@@ -31,7 +35,7 @@ class Deck:
 
         for suit in suits:
             for value in values:
-                self.cards.append(Card(value,suit))
+                self.cards.append(Card(value,suit,values[value]))
 
     # returns the deck
     def getCards(self):
