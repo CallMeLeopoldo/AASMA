@@ -1,9 +1,16 @@
 class Node(object):
     def __init__(self, parent):
         self.parent = parent
-        self.children = {}
+        self.children = []
         self.q = 0
         self.n = 0
+        self.level = 0
+        #self.visited = false
+
+    def _isTerminal():
+        if self.level == 3:
+            return True
+        return False
 
 
 class ActionNode(Node):
