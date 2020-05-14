@@ -1,4 +1,5 @@
 import random
+import utils
 
 #################################################
 ####            MCTS                        #####
@@ -9,21 +10,22 @@ class MCTS(object):
         self.tree_policy = tree_policy
         self.default_policy = default_policy
         self.backup = backup
+        self.root = None
     
     def __call__(self,root, n=1500):
         if root.parent is not None:
             raise ValueError("Root's parent must be None.")
+        self.root = root
         for _ in range(n):
-            node = _get_next_node(root, self.tree_policy)
+            node = _get_next_node(self.root, self.tree_policy)
             node.reward = self.default_policy(node)
-            self.backup(node)
+            self.rollout(node)
 
         return utils.max(root.children().values) 
 
-    def rollout(self, note):
+    def rollout(self, node):
         path = self._get_next_node(node)
         next_node = path[-1]
-        self._expand(next_node)
         self._simulation(next_node)
 
     def select(self, node, tree_policy):
@@ -33,10 +35,8 @@ class MCTS(object):
         if tree_policy == 3:
             pass
         # Random way -> Pick randomly
-        elif tree_policy == 2:
-            n = len(node.untried_actions)
-            i = random.randint(0, n-1)
-            return node.untried_actions[i]
+        elif tree_policy == 2: 
+            return random.choice(node.untried_actions)
         else:
             for child in node.untried_actions:
                 if child.state == "RAISE" and len(_raise) == 1:
@@ -54,15 +54,17 @@ class MCTS(object):
             else:
                 return _preference[-1]
 
-    def _expand(self, state_node):
-        self.children[node] = node.children
+    def _expand(self, state_node, action):
+        #return state_node.children[action].sample_state()
+        state_node.children[action].n += 1
+        #LIL' DOUBT
 
-    def _simulation(self, node):
+    def _simulation(self, state_node, action):
         reward = 0
-        if node.level == 3:
-            reward += node._calculate_reward()
+        if state_node.level == 6:
+            reward += state_node._calculate_reward()
         else:
-            pass
+            state_node.children[action].sample_state()
             #ideia é criar um novo no random o que quer dizer que temos que criar um modo nos nos se criarem com as caracteristicas
             #IMPORTANTE e preciso ter em atencao o atributo level dos nos que garante se sao ou nao terminais
 
@@ -76,11 +78,19 @@ class MCTS(object):
         path = []
         while not state_node.state.is_terminal():
             if state_node.untried_actions:
-                if len(untried_actions) == 1:
-                    path.append(untried_actions[0])
+                if len(state_node.untried_actions) == 1:
+                    path.append(state_node.untried_actions[0])
                 else:
-                    path.append(self._selection(state_node, tree_policy))
+                    action = self._selection(state_node, tree_policy)
+                    self._expand(state_node, action)
+                    path.append()
                 return path
             else:
                 state_node = self._best_child(state_node, tree_policy)
         return state_node
+
+
+
+        #ACTIONNODE -> ACTIONNODE
+
+        #STATENODE -> ACTIONNODE -> STATENODE
