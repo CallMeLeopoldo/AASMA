@@ -29,6 +29,7 @@ class Agent:
     def __init__(self, identifier):
         self.id = identifier
         self.money = Chips(5000)
+        self.hand = []
     
 #################################################
 ####            DECISION-MAKING             #####

@@ -51,7 +51,7 @@ class Deck:
         return self.cards
     
     # returns the current number of cards in the deck
-    def numberCards(self):
+    def getNumberCards(self):
         return len(self.cards)
 
     # checks whether the deck is empty or not
