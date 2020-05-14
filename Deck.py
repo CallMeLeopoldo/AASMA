@@ -7,6 +7,7 @@ class Card:
         self.suit = suit 
         self.name = value + " of " + suit
         self.numVal = numVal
+        self.showing = False
 
     def getValue(self):
         return self.value
@@ -20,11 +21,19 @@ class Card:
     def getNumericalValue(self):
         return self.numVal
     
+    def isShowing(self):
+        return self.showing
+    
+    def turn(self):
+        self.showing = True
+
     # checks whether other card is the same as this card
     def isEqual(self, other):
         if other.value == self.value and other.suit == self.suit:
             return True
         return False
+    
+
 
 class Deck:
 
@@ -52,6 +61,13 @@ class Deck:
         else:
             return True
     
+    # returns card with card name
+    def getCardByName(self, cardName):
+        for card in self.cards:
+            if cardName == card.getName():
+                return card
+        return None
+
     # checks if specific card is in the deck, by the card name
     def containsCard(self, cardName):
         for card in self.cards:
@@ -69,3 +85,4 @@ class Deck:
             return None
         else:
             return self.cards.pop()
+    
