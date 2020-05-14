@@ -68,6 +68,12 @@ class Deck:
                 return card
         return None
 
+    # removes card with card name
+    def removeCard(self, cardName):
+        card = self.getCardByName(cardName)
+        if card:
+            self.cards.remove(card)
+
     # checks if specific card is in the deck, by the card name
     def containsCard(self, cardName):
         for card in self.cards:
