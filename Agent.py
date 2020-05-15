@@ -3,6 +3,7 @@ from queue import Queue
 from Chips import Chips
 import utils
 import random
+import itertools
 
 class Desire(Enum):
     CALL = "call"
@@ -25,16 +26,20 @@ class Agent:
     desire = Desire.CALL
     action = Action.NONE
     plan = Queue.queue 
+    
 
     def __init__(self, identifier):
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
+        self.ownDeck = []
     
 #################################################
 ####            DECISION-MAKING             #####
 #################################################
 
+    def decisionMaking(self):
+        pass
 
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
@@ -65,8 +70,21 @@ class Agent:
 ####            AUXILIARY               #########
 #################################################
 
-    def buildPathPlan():
+    def findHand():
+        possible_hands = itertools(self.hand, 5)
+        rating = 0
+        best = None
+        for hand in possible_hands:
+            curent = rateHand(hand)
+            if current > rating:
+                rating = current
+                best = hand
+        self.hand = best
+    
+    def rateHand(hand):
         pass
+        #basically check all possible combinations of agents cards and cards on table to find the hand currently held. will have to implement this in Node as well
+
 
 #################################################
 ####            SENSORS                     #####
@@ -74,6 +92,9 @@ class Agent:
 
     def checkMyCards(self):
         return self.cards
+
+    def checkMyDeck(self):
+        return self.deck
 
     def checkTableCards():
         return table.cards

@@ -1,5 +1,9 @@
 import random
 import utils
+import Node from Node
+import Agent from Agent
+import Deck from Deck
+import Card from Deck
 
 #################################################
 ####            MCTS                        #####
@@ -11,22 +15,29 @@ class MCTS(object):
         self.default_policy = default_policy
         self.backup = backup
         self.root = None
+        self.deck = None
+        self.hand = None
     
-    def __call__(self,root, n=1500):
+    def __call__(self, n=1500, root, deck, hand):
         if root.parent is not None:
             raise ValueError("Root's parent must be None.")
         self.root = root
+        self.deck = deck
+        self.hand = hand
         for _ in range(n):
-            node = _get_next_node(self.root, self.tree_policy)
-            node.reward = self.default_policy(node)
             self.rollout(node)
+        #    node = _get_next_node(self.root, self.tree_policy)
+        #    node.reward = self.default_policy(node)
 
-        return utils.max(root.children().values) 
+        #return utils.max(root.children().values)
+        # this is to return the best child. adjust accordingly 
 
     def rollout(self, node):
         path = self._get_next_node(node)
         next_node = path[-1]
-        self._simulation(next_node)
+        leaf = self._simulation(next_node)
+        reward = leaf.calculate_reward()
+        self._backPropagate(leaf, reward)
 
     def select(self, node, tree_policy):
         #order is raise call check fold
@@ -59,20 +70,25 @@ class MCTS(object):
         state_node.children[action].n += 1
         #LIL' DOUBT
 
-    def _simulation(self, state_node, action):
-        reward = 0
-        if state_node.level == 6:
-            reward += state_node._calculate_reward()
-        else:
-            state_node.children[action].sample_state()
-            #ideia é criar um novo no random o que quer dizer que temos que criar um modo nos nos se criarem com as caracteristicas
-            #IMPORTANTE e preciso ter em atencao o atributo level dos nos que garante se sao ou nao terminais
+    def _simulation(self, state_node):
+        test_node = state_node
+        while !(test_node.level == 6 or (test_node.isInstance(ActionNode) and test_node.action = "FOLD")):
+            test_node.sample_state()
+            new_child = state_node._randomChild()
+            test_node = new_child
+        return test_node
 
     def _best_child(self, state_node, tree_policy):
         best_action_node = utils.rand_max(state_node.children.values(),
                                         key=tree_policy)
         return best_action_node.sample_state()
 
+    def _backPropagate(self, leaf_node, reward_value):
+        if leaf_node.parent == None:
+            leaf_node.parent.update(leaf_node,reward_value)
+            return
+        leaf_node.parent.update(leaf_node,reward_value)
+        self._backPropagate(leaf_node.parent, reward_value)
 
     def _get_next_node(self, state_node, tree_policy):
         path = []
