@@ -1,6 +1,8 @@
 import Agent from Agent
 import Deck from Deck
 import Card from Deck
+import random
+import itertools
 
 class Node(object):
     def __init__(self, parent, deck, hand):
@@ -21,38 +23,24 @@ class Node(object):
     def untried_actions(self):
         return [a for a in self.children if self.children[a].n == 0]
     
-    def _randomChild(self)
-        return random.choice(node.untried_actions)
+    def _randomChild(self):
+        return random.choice(self.untried_actions())
         
 
-class ActionNode(Node):
+class Action():
     """
     A node holding an action in the tree.
     """
-    def __init__(self, parent, action):
-        super(ActionNode, self).__init__(parent)
+    def __init__(self, action, ammount, utility, giveUp):
         self.action = action
-        self.n = 0
-
-    def findHand(cardList):
-        possible_hands = itertools(cardList, 5)
-        rating = 0
-        best = None
-        for hand in possible_hands:
-            curent = rateHand(hand)
-            if current > rating:
-                rating = current
-                best = hand
-        return best
-    
-    def rateHand(hand):
-        #rules for the hands. use a liner rating here
-        pass
+        self.currentAmmount = ammount
+        self.utility = utility or 0 #may be useful
+        self.giveUp = giveUp
 
     def sample_state(self, real_world=False):
-        if !deck.isEmpty():
+        if  not self.deck.isEmpty():
             i = 0
-            while i < len(self.deck().getCards()) 
+            while i < len(self.deck().getCards()): 
                 new_card = self.deck().getCards()[i]
                 new_deck = self.deck
                 new_deck.removeCard(new_card.getName())
@@ -64,9 +52,9 @@ class ActionNode(Node):
                 elif(self.level == 5):
                     child = StepNode(self,"SHOWDOWN", new_deck, new_hand)
                 child.level = self.level + 1
+                return child
         else:
             print("Action node is working in an empty deck")
-
 
 class StepNode(Node):
     """
@@ -76,8 +64,28 @@ class StepNode(Node):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0
+    
+    def find_children(self,):
         for action in state.actions:
-            self.children[action] = ActionNode(self, action)
+            act = Action(self, action)
+            newState = act.sample_state()
+            self.children[action] = newState
+
+    def findHand(self, cardList):
+        possible_hands = itertools(cardList, 5)
+        rating = 0
+        best = None
+        current = 0
+        for hand in possible_hands:
+            curent = rateHand(hand)
+            if current > rating:
+                rating = current
+                best = hand
+        return best
+
+    def rateHand(self, hand):
+        #rules for the hands. use a liner rating here
+        pass
 
     def untried_actions(self, value):
         raise ValueError("Untried actions can not be set.")

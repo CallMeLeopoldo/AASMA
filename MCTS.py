@@ -33,11 +33,12 @@ class MCTS(object):
         # this is to return the best child. adjust accordingly 
 
     def rollout(self, node):
-        path = self._get_next_node(node)
-        next_node = path[-1]
-        leaf = self._simulation(next_node)
+        path = self.slect(node)
+        leaf = path[-1]
+        self.expand(leaf)
+        reward = self._simulation(leaf)
         reward = leaf.calculate_reward()
-        self._backPropagate(leaf, reward)
+        self._backPropagate(path, reward)
 
     def select(self, node, tree_policy):
         #order is raise call check fold
@@ -65,10 +66,26 @@ class MCTS(object):
             else:
                 return _preference[-1]
 
-    def _expand(self, state_node, action):
+    def _select(self, node, tree_plicy):            
+        "Find an unexplored descendent of `node`"
+        path = []
+        while True:
+            path.append(node)
+            if node not in self.children or not self.children[node]:
+                # node is either unexplored or terminal
+                return path
+            unexplored = self.children[node] - self.children.keys()
+            if unexplored:
+                n = unexplored.pop()
+                path.append(n)
+                return path
+            node = self._uct_select(node)  # descend a layer deeper
+    
+    def _expand(self, node, action):
         #return state_node.children[action].sample_state()
-        state_node.children[action].n += 1
-        #LIL' DOUBT
+        if(node in self.children):
+            return
+        node.find_children()
 
     def _simulation(self, state_node):
         test_node = state_node
