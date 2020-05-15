@@ -1,6 +1,7 @@
 from enum import Enum
 from queue import Queue
 from Chips import Chips
+from MCTS import MCTS
 import utils
 import random
 import itertools
@@ -26,20 +27,28 @@ class Agent:
     desire = Desire.CALL
     action = Action.NONE
     plan = Queue.queue 
-    
 
-    def __init__(self, identifier):
+    def __init__(self, identifier, tree_policy, default_policy, backup):
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
         self.ownDeck = []
+        self.tree_policy = tree_policy
+        self.default_policy = default_policy
+        self.backup = backup
     
 #################################################
 ####            DECISION-MAKING             #####
 #################################################
 
     def decisionMaking(self):
-        pass
+        mcts = MCTS(self.tree_policy, self.default_policy, self.backup)
+
+        root = Node(None, self.ownDeck, self.hand, self.tableGetState())
+        root.n += 1
+        root.sample_state()
+
+        action = mcts(root, self.ownDeck, self.hand)
 
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
@@ -52,6 +61,10 @@ class Agent:
 ####            COMMUNICATION               #####
 #################################################
 
+    def tableGetState(self):
+        pass
+        #communicate w table to get which state the game is in, i.e flop, turn, river, etc
+    
     def updateBeliefs(self):
         pass
 

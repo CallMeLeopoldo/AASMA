@@ -58,11 +58,11 @@ class ActionNode(Node):
                 new_deck.removeCard(new_card.getName())
                 new_hand = self.findHand(self.hand.append(new_card))
                 if(self.level == 1):
-                    child = StepNode(self,"TURN", new_deck, new_hand)
+                    child = StepNode(self, new_deck, new_hand, "TURN")
                 elif(self.level == 3):
-                    child = StepNode(self,"RIVER", new_deck, new_hand)
+                    child = StepNode(self, new_deck, new_hand, "RIVER")
                 elif(self.level == 5):
-                    child = StepNode(self,"SHOWDOWN", new_deck, new_hand)
+                    child = StepNode(self, new_deck, new_hand, "SHOWDOWN")
                 child.level = self.level + 1
         else:
             print("Action node is working in an empty deck")
@@ -72,7 +72,7 @@ class StepNode(Node):
     """
     A node holding a state in the tree.
     """
-    def __init__(self, parent, state, deck, hand):
+    def __init__(self, parent, deck, hand, state,):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0

@@ -1,4 +1,7 @@
 from Deck import Deck
+from Deck import Card
+from Agent import Agent
+from Chips import Chips
 
 class Table:
     
@@ -8,6 +11,7 @@ class Table:
         self.pot = 0
         self.tableCards = []
         self.discardPile = []
+        self.gameState = None
 
         #self.smallBlind
         #self.bigBlind
