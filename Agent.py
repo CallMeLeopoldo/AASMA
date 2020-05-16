@@ -34,6 +34,9 @@ class Agent:
         self.money = Chips(5000)
         self.hand = []
         self.ownDeck = []
+        self.currentBetAmount = 0
+        self.currentRaiseAmount = 0
+        self.state = None
         #self.tree_policy = tree_policy
         #self.default_policy = default_policy
         #self.backup = backup
@@ -72,8 +75,14 @@ class Agent:
     def updateBeliefs(self):
         pass
 
-    def sendMessage(self):
-        pass
+    def receiveMessage(self, msg):
+        self.state = msg[0]
+        self.currentBetAmount = msg[1]
+        self.currentRaiseAmount = msg[2]
+        return self.sendMessage(self.randomChoice())
+
+    def sendMessage(self,msg):
+        return [msg, self.id]
 
         #sendMessage(Chips, "Fold")
         #sendMessage(Card)

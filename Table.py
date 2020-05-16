@@ -104,8 +104,8 @@ class Table:
         nAgents = len(self.activeAgents)
         while nAgents > 0:
             self.passTurn()    
-            self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount])
-            msg = self.receiveMessage(self.turn)
+            msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount])
+            #msg = self.receiveMessage(self.turn)
             if "RAISE" in msg:
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)
@@ -152,12 +152,10 @@ class Table:
     #################################################
 
     def sendMessage(self, agent, msg):
-        self.activeAgents[agent].receiveMessage(msg)
+        return self.activeAgents[agent].receiveMessage(msg)
     
-    # TODO
-    def receiveMessage(self, agent):
-        return ''
-        #return self.activeAgents[agent].<somefunction>
+    #def receiveMessage(self, agent, msg):
+    #    return msg
 
     #################################################
     ####                  GAME                  #####
@@ -177,7 +175,7 @@ class Table:
         
         # pre flop: betting round
         if not self.bettingRound("PRE-FLOP", 0):
-            if len(self.activeAgents == 1):
+            if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
 
@@ -190,7 +188,7 @@ class Table:
 
         # flop: betting round
         if not self.bettingRound("FLOP", 0):
-            if len(self.activeAgents == 1):
+            if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
 
@@ -203,7 +201,7 @@ class Table:
 
         # turn: betting round
         if not self.bettingRound("TURN", 0):
-            if len(self.activeAgents == 1):
+            if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
 
@@ -216,7 +214,7 @@ class Table:
 
         # river: betting round
         if not self.bettingRound("RIVER", 0):
-            if len(self.activeAgents == 1):
+            if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
 
