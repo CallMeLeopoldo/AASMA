@@ -51,9 +51,11 @@ class Chips:
 
     def fold(self):
         self.lost += self.bet
-        self.bet = 0
+        self.roundBet = 0
+        self.gameBet = 0
 
     def collect(self, pot):
         self.current += pot
         self.gained += pot
-        self.bet = 0
+        self.roundBet = 0
+        self.gameBet = 0

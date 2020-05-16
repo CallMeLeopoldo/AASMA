@@ -71,10 +71,14 @@ class Table:
     # places one card on the table
     def dealCardsTable(self, num):
         n = 0
+        dealtCards = []
         while n < num: 
             card = self.deck.dealCard()
             self.tableCards.append(card)
+            dealtCards.append(card)
             n += 1
+        for a in self.activeAgents:
+            a.receiveCards(dealtCards)
 
     # deals two cards to agent
     def dealCardsAgent(self, agent):
@@ -90,7 +94,6 @@ class Table:
         self.raiseAmount = self.raiseAmount * 2
         self.betAmount = self.betAmount * 2 
 
-    # TODO: this will be the full betting round
     def bettingRound(self, state, counter):
         if len(self.activeAgents) <= 1:
             return False
@@ -105,9 +108,9 @@ class Table:
             msg = self.receiveMessage(self.turn)
             if "RAISE" in msg:
                 self.betAmount += self.raiseAmount
-                self.pot += self.betAmount
+                self.addToPot(self.betAmount)
             elif "CALL" in msg:
-                self.pot += self.betAmount
+                self.addToPot(self.betAmount)
             elif "FOLD" in msg:
                 self.activeAgents.pop(self.turn)
         
@@ -127,15 +130,6 @@ class Table:
             counter += 1
             self.bettingRound(state, counter)
 
-
-        
-
-        #move dealer button to next player
-        #send state to agents ?
-        #for a in agents: a.decide ?
-        #add chips to pot
-        #update agents still playing
-        #if agents 
     
     def reset(self, bigBlind):
         self.deck = Deck()
@@ -170,6 +164,7 @@ class Table:
     
     def gameRound(self):
         
+        ################ PRE GAME PHASE ################
         self.turn = self.dealer
 
         # pay small blind and big blind
@@ -180,8 +175,12 @@ class Table:
             self.dealCardsAgent(a)
         
         # pre flop: betting round
-        self.bettingRound("PRE-FLOP", 0)
+        if !self.bettingRound("PRE-FLOP", 0):
+            if len(self.activeAgents == 1):
+                self.activeAgents[0].receivePot(self.pot)
+            return
 
+        ################ FLOP PHASE ################
         # discard card
         self.discardCard()
 
@@ -189,8 +188,12 @@ class Table:
         self.dealCardsTable(3)
 
         # flop: betting round
-        self.bettingRound("FLOP", 0)
+        if !self.bettingRound("FLOP", 0):
+            if len(self.activeAgents == 1):
+                self.activeAgents[0].receivePot(self.pot)
+            return
 
+        ################ TURN PHASE ################
         # turn: double bet ammount and raise ammount
         self.doubleAmmounts()
 
@@ -198,8 +201,12 @@ class Table:
         self.dealCardsTable(1)
 
         # turn: betting round
-        self.bettingRound("TURN", 0)
+        if !self.bettingRound("TURN", 0):
+            if len(self.activeAgents == 1):
+                self.activeAgents[0].receivePot(self.pot)
+            return
 
+        ################ RIVER PHASE ################
         # river: double bet ammount and raise ammount
         self.doubleAmmounts()
 
@@ -207,12 +214,27 @@ class Table:
         self.dealCardsTable(1)
 
         # river: betting round
-        self.bettingRound("RIVER", 0)
+        if !self.bettingRound("RIVER", 0):
+            if len(self.activeAgents == 1):
+                self.activeAgents[0].receivePot(self.pot)
+            return
 
-        # showdown
-        #check if there is more than one active player
-        #check who is the winner
-        #attribute pot? idk is this would even make sense bc the game is over and the agents would stop existing now
+        ################ SHOWDOWN PHASE ################
+        
+        best = []
+        cardRank = 0
+        for a in self.activeAgents:
+            if cardRank < a.showHand():
+                cardRank = a.showHand()
+                best.clear()
+                best.append(a)
+            elif cardRank == a.showHand():
+                best.append(a)
+        
+        for a in best:
+            a.receivePot(self.pot/len(best))
+
+        return
     
     
     def game(self, rounds):
@@ -221,6 +243,9 @@ class Table:
             if len(self.agents) <= 1:
                 break
             self.gameRound()
+            for a in self.agents:
+                if a.getMoney() == 0:
+                    self.agents.pop(a)
             self.reset(self.bigBlind)
             r += 1
 

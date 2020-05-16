@@ -82,9 +82,15 @@ class Agent:
         #receiveMessage(Card)
         #receiveMessage(2 Cards)
     
-    def receiveCards(self, card1, card2):
-        self.hand.append(card1)
-        self.hand.append(card2)
+    def receiveCards(self, cardList):
+        for card in cardList:
+            self.hand.append(card)
+
+    def showHand(self):
+        return rateHand(self.hand)
+
+    def receivePot(self, potAmount):
+        self.money.collect(potAmount)
 
 #################################################
 ####            AUXILIARY?               ########
@@ -92,6 +98,9 @@ class Agent:
     
     def getRoundBet(self):
         return self.money.getRoundBet()
+
+    def getMoney(self):
+        return self.money.getCurrent()
     
     def payBlind(self, amount):
         self.money.bet(ammount)
@@ -108,8 +117,6 @@ class Agent:
             return "FOLD"
         elif action == "CHECK":
             return "CHECK"
-
-
 
     def reset(self):
         self.hand = []
