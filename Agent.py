@@ -55,8 +55,13 @@ class Agent:
 #
 #        action = mcts(root, self.ownDeck, self.hand)
     
-    def randomChoice(self):
-        self.action = random.choice(list(Action))
+    def randomChoice(self, canCheck, canRaise):
+        actions = list(Action)
+        if not canCheck:
+            del actions[2]
+        if not canRaise:
+            del actions[1]
+        self.action = random.choice(actions)
         return self.action
 
 #################################################
@@ -81,7 +86,9 @@ class Agent:
         self.state = msg[0]
         self.currentBetAmount = msg[1]
         self.currentRaiseAmount = msg[2]
-        return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount), self.id]
+        canCheck = msg[3]
+        canRaise = msg[4]
+        return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise), self.id]
 
     def sendMessage(self,msg):
         return [msg, self.id]
@@ -122,8 +129,8 @@ class Agent:
         self.money.bet(amount)
         self.resetRoundBet()
     
-    def makeBet(self, betAmount, raiseAmount):
-        action = self.randomChoice()
+    def makeBet(self, betAmount, raiseAmount, canCheck, canRaise):
+        action = self.randomChoice(canCheck, canRaise)
         if action.name == "CALL":
             self.money.bet(betAmount)
             return "CALL"
