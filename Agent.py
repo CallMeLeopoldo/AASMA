@@ -1,7 +1,7 @@
 from enum import Enum
 from queue import Queue
 from Chips import Chips
-from MCTS import MCTS
+#from MCTS import MCTS
 import utils
 import random
 import itertools
@@ -128,15 +128,16 @@ class Agent:
 #################################################
 
     def findHand(self):
-        possible_hands = itertools(self.hand, 5)
-        rating = 0
-        best = None
-        for hand in possible_hands:
-            current = self.rateHand(hand)
-            if current > rating:
-                rating = current
-                best = hand
-        self.hand = best
+#        possible_hands = itertools(self.hand, 5)
+#        rating = 0
+#        best = None
+#        for hand in possible_hands:
+#            current = self.rateHand(hand)
+#            if current > rating:
+#                rating = current
+#                best = hand
+#        self.hand = best
+        pass
     
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)

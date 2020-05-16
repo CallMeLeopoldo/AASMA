@@ -253,8 +253,8 @@ class Table:
 
 
 line = sys.stdin.readline()
-numRounds = line.split(' ')[0]
-numAgents = line.split(' ')[1]
-bigBlind = line.split(' ')[2]
+numRounds = int(line.split(' ')[0])
+numAgents = int(line.split(' ')[1])
+bigBlind = int(line.split(' ')[2])
 table = Table(numRounds, numAgents, bigBlind)
 table.game(numRounds)
