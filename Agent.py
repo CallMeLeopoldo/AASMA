@@ -83,7 +83,7 @@ class Agent:
 ####            AUXILIARY               #########
 #################################################
 
-    def findHand():
+    def findHand(self):
         possible_hands = itertools(self.hand, 5)
         rating = 0
         best = None
@@ -94,9 +94,101 @@ class Agent:
                 best = hand
         self.hand = best
     
-    def rateHand(hand):
-        pass
-        #basically check all possible combinations of agents cards and cards on table to find the hand currently held. will have to implement this in Node as well
+    def rateHand(self, hand):
+        opt1 = self.checkRanks(hand)
+        #if it has more than one card of the same rank its not a sequence or a flush
+        if opt1 != None:
+            return opt1
+        opt2 = self.checkSequence(hand)
+        opt3 = self.checkSuits(hand)
+        #if its a high card
+        if opt2 == None and opt3 == None:
+            temp = hand
+            temp.sort()
+            return temp[-1] - 1
+        #if its a flush
+        if opt2 == None and opt3 != None:
+            return 62 + (opt3-2)
+        #if its a straight
+        if opt2 != None and opt3 == None:
+            return 52 + (opt2-2)
+        if opt2 != None and opt3 != None:
+            #if its a royal flush
+            if opt2 = 10 and hand[0].getSuit() == "Spades":
+                return 110
+            #if its a straight flush
+            else:
+                return 101 + (opt2-2)
+    
+    def checkRanks(self, hand):
+        repeats = []
+        times = []
+        for card in hand:
+            if card.getValue() in repeats:
+                times[repeats.index(card.getNumericalValue())] += 1
+            else:
+                repeats.append(card.getNumericalValue())
+                times.append(1)
+        if len(repeats) == 5:
+            return None
+        #pair
+        if len(repeats) == 4:
+            return 14+(repeats[times.index(2)]-2)
+        if len(repeats) == 3:
+            #three of a kind
+            if 3 in repeats:
+                return 14+(repeats[times.index(3)]-2)
+            #two pair
+            else:
+                firstRank = repeats[times.index(2)]
+                times.pop(firstRank)
+                secondRank = repeats[times.index(2)]
+                if firstRank > secondRank:
+                    return 27 + (firstRank -2)
+                else:
+                    return 27 + (secondRank -2)
+        if len(repeats) == 2:
+            #four of a kind
+             if 4 in repeats:
+                return 88 + (repeats[times.index(4)]-2)
+            #full house
+            else:
+                return 75 + (repeats[times.index(3)]-2)
+
+    def checkSuits(self, hand):
+        #clubs diamonds hearts spades
+        suits = [0, 0, 0, 0]
+        for card in hand:
+            if card.getSuit() == "Clubs":
+                suits[0] += 1
+            elif card.getSuit() == "Diamonds":
+                suits[1] += 1
+            elif card.getSuit() == "Hearts":
+                suits[2] += 1
+            elif card.getSuit() == "Spades":
+                suits[3] += 1
+        if 5 not in suits:
+            return None
+        else:
+            temp = hand
+            temp.sort()
+            return temp[-1]
+    
+    def checkSequence(self, hand):
+        temp = hand
+        temp.sort()
+        i = 0:
+        seq = True
+        while i < len(temp):
+            if temp[i] != (temp[i+1] + 1):
+                seq = False
+                break
+            else:
+                i += 1
+        if !seq:
+            return None
+        else:
+            return temp[0]
 
 
 #################################################
