@@ -137,7 +137,7 @@ class Agent:
 
     def reset(self):
         self.hand = []
-        self.ownDeck = []
+        self.deck = Deck()
 
 #################################################
 ####            AUXILIARY               #########
