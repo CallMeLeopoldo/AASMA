@@ -49,25 +49,36 @@ class Table:
     ####             DEALER ACTIONS              #####
     ##################################################
 
+    def addToPot(self, amount):
+        self.pot += amount
+
+
     # agents pay small blind and big blind 
     def blinds(self):
         self.passTurn()
         self.agents[self.turn].payBlind(self.smallBlind)
+        self.addToPot(self.smallBlind)
         self.passTurn()
         self.agents[self.turn].payBlind(self.bigBlind)
+        self.addToPot(self.bigBlind)
+
 
     # self.turn has the activeAgents index. returns agent id
     def passTurn(self):
         nextTurn = self.turn
-        if nextTurn > len(self.activeAgents)-1:
+        if nextTurn >= len(self.activeAgents)-1:
             nextTurn = 0
+        else:
+            nextTurn += 1
         self.turn = nextTurn
+
 
     # discards one card
     def discardCard(self):
         card = self.deck.dealCard()
         self.discardPile.append(card)
         
+
     # places one card on the table
     def dealCardsTable(self, num):
         n = 0
@@ -80,41 +91,43 @@ class Table:
         for a in self.activeAgents:
             a.receiveCards(dealtCards)
 
+
     # deals two cards to agent
     def dealCardsAgent(self, agent):
         card1 = self.deck.dealCard()
         card2 = self.deck.dealCard()
         agent.receiveCards([card1, card2])
-
-    def addToPot(self, amount):
-        self.pot += amount
     
+
     # doubles both bet amount and raise amount
     def doubleAmounts(self):
         self.raiseAmount = self.raiseAmount * 2
         self.betAmount = self.betAmount * 2 
 
+
     def bettingRound(self, state, counter):
-        if len(self.activeAgents) <= 1:
-            return False
 
         if counter == 0:
             self.betAmount = self.bigBlind
 
         nAgents = len(self.activeAgents)
+        toRemove = []
         while nAgents > 0:
-            self.passTurn()    
+            self.passTurn() 
             msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount])
             #msg = self.receiveMessage(self.turn)
-            if "RAISE" in msg:
+            if "RAISE" == msg[0]:
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)
-            elif "CALL" in msg:
+            elif "CALL" == msg[0]:
                 self.addToPot(self.betAmount)
-            elif "FOLD" in msg:
-                self.activeAgents.pop(self.turn)
+            elif "FOLD" == msg[0]:
+                toRemove.append(self.activeAgents[self.turn])
             nAgents -= 1
         
+        for el in toRemove:
+            self.activeAgents.remove(el)
+
         bet = 0
         newRound = False
         for a in self.activeAgents:
@@ -124,12 +137,16 @@ class Table:
                 newRound = True
                 break
 
-        if counter == 4:
-            return True
-
-        if (newRound):
+        if newRound and counter < 3:
             counter += 1
-            self.bettingRound(state, counter)
+            return self.bettingRound(state, counter)
+        else:
+            if len(self.activeAgents) <= 1:
+                return False
+            else:
+                for a in self.activeAgents:
+                    a.resetRoundBet()
+                return True
 
     
     def reset(self, bigBlind):
@@ -143,8 +160,10 @@ class Table:
 
         self.dealer += 1
 
+        self.activeAgents.clear()
         for a in self.agents:
             a.reset()
+            self.activeAgents.append(a)
 
     
     #################################################
@@ -164,15 +183,19 @@ class Table:
     def gameRound(self):
         
         ################ PRE GAME PHASE ################
+        #print("------------PRE-GAME PHASE------------")
         self.turn = self.dealer
 
         # pay small blind and big blind
         self.blinds()
 
+        self.deck.shuffle()
+
         # deal 2 cards to each agent
         for a in self.agents:
             self.dealCardsAgent(a)
         
+        #print("------------PRE-FLOP PHASE------------")
         # pre flop: betting round
         if not self.bettingRound("PRE-FLOP", 0):
             if len(self.activeAgents) == 1:
@@ -180,6 +203,7 @@ class Table:
             return
 
         ################ FLOP PHASE ################
+        #print("------------FLOP PHASE------------")
         # discard card
         self.discardCard()
 
@@ -193,6 +217,7 @@ class Table:
             return
 
         ################ TURN PHASE ################
+        #print("------------TURN PHASE------------")
         # turn: double bet ammount and raise ammount
         self.doubleAmounts()
 
@@ -206,6 +231,7 @@ class Table:
             return
 
         ################ RIVER PHASE ################
+        #print("------------RIVER PHASE------------")
         # river: double bet ammount and raise ammount
         self.doubleAmounts()
 
@@ -237,15 +263,22 @@ class Table:
     
     
     def game(self, rounds):
+        #print("##################### STARTING THE GAME #####################")
         r = 0
         while r < rounds:
+            #print("################### ROUND NO." + str(r+1) + " ###################")
             if len(self.agents) <= 1:
                 break
             self.gameRound()
+            #msg = ""
             for a in self.agents:
                 if a.getMoney() == 0:
                     self.agents.pop(a)
+            #    else:
+            #        msg = msg + str(a.id) + "; "
+            #print("Agents currently playing: " + msg)
             self.reset(self.bigBlind)
+            #print("Reseting conditions")
             r += 1
 
 

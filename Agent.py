@@ -13,20 +13,20 @@ class Desire(Enum):
     FOLD = "fold"
 
 class Action(Enum):
-    NONE = "none"
+    #NONE = "none"
     CALL = "call"
     RAISE = "raise"
     CHECK = "check"
     FOLD = "fold"
-    SHOWHAND = "show hand"
-    PAYBLIND = "pay blind"
+    #SHOWHAND = "show hand"
+    #PAYBLIND = "pay blind"
 
 
 
 class Agent:
-    desire = Desire.CALL
-    action = Action.NONE
-    plan = Queue().queue 
+    #desire = Desire.CALL
+    action = None
+    #plan = Queue().queue 
 
     def __init__(self, identifier, table):
         self.table = table
@@ -55,6 +55,7 @@ class Agent:
 #        action = mcts(root, self.ownDeck, self.hand)
     
     def randomChoice(self):
+        self.action = random.choice(list(Action))
         return self.action
 
 #################################################
@@ -79,7 +80,7 @@ class Agent:
         self.state = msg[0]
         self.currentBetAmount = msg[1]
         self.currentRaiseAmount = msg[2]
-        return self.sendMessage(self.randomChoice())
+        return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount), self.id]
 
     def sendMessage(self,msg):
         return [msg, self.id]
@@ -109,23 +110,27 @@ class Agent:
     def getRoundBet(self):
         return self.money.getRoundBet()
 
+    def resetRoundBet(self):
+        self.money.resetRoundBet()
+
     def getMoney(self):
         return self.money.getCurrent()
     
     def payBlind(self, amount):
         self.money.bet(amount)
+        self.resetRoundBet()
     
     def makeBet(self, betAmount, raiseAmount):
         action = self.randomChoice()
-        if action == "CALL":
+        if action.name == "CALL":
             self.money.bet(betAmount)
             return "CALL"
-        elif action == "RAISE":
+        elif action.name == "RAISE":
             self.money.bet(betAmount + raiseAmount)
             return "RAISE"
-        elif action == "FOLD":
+        elif action.name == "FOLD":
             return "FOLD"
-        elif action == "CHECK":
+        elif action.name == "CHECK":
             return "CHECK"
 
     def reset(self):
@@ -136,17 +141,19 @@ class Agent:
 ####            AUXILIARY               #########
 #################################################
 
+    def returnRank(self, card):
+        return card.getNumericalValue()
+
     def findHand(self):
-#        possible_hands = itertools(self.hand, 5)
-#        rating = 0
-#        best = None
-#        for hand in possible_hands:
-#            current = self.rateHand(hand)
-#            if current > rating:
-#                rating = current
-#                best = hand
-#        self.hand = best
-        pass
+        possible_hands = itertools(self.hand, 5)
+        rating = 0
+        best = None
+        for hand in possible_hands:
+            current = self.rateHand(hand)
+            if current > rating:
+                rating = current
+                best = hand
+        self.hand = best
     
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)
@@ -158,21 +165,21 @@ class Agent:
         #if its a high card
         if opt2 == None and opt3 == None:
             temp = hand
-            temp.sort()
-            return temp[-1] - 1
+            temp.sort(key=self.returnRank)
+            return temp[-1].getNumericalValue() - 1
         #if its a flush
         if opt2 == None and opt3 != None:
-            return 62 + (opt3-2)
+            return 62 + (opt3.getNumericalValue()-2)
         #if its a straight
         if opt2 != None and opt3 == None:
-            return 52 + (opt2-2)
+            return 52 + (opt2.getNumericalValue()-2)
         if opt2 != None and opt3 != None:
             #if its a royal flush
-            if opt2 == 10 and hand[0].getSuit() == "Spades":
+            if opt2.getNumericalValue() == 10 and hand[0].getSuit() == "Spades":
                 return 110
             #if its a straight flush
             else:
-                return 101 + (opt2-2)
+                return 101 + (opt2.getNumericalValue()-2)
     
     def checkRanks(self, hand):
         repeats = []
@@ -225,16 +232,16 @@ class Agent:
             return None
         else:
             temp = hand
-            temp.sort()
+            temp.sort(key=self.returnRank)
             return temp[-1]
     
     def checkSequence(self, hand):
         temp = hand
-        temp.sort()
+        temp.sort(key=self.returnRank)
         i = 0
         seq = True
         while i < len(temp):
-            if temp[i] != (temp[i+1] + 1):
+            if temp[i].getNumericalValue() != (temp[i+1].getNumericalValue() + 1):
                 seq = False
                 break
             else:
