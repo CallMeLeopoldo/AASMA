@@ -28,14 +28,14 @@ class Agent:
     action = Action.NONE
     plan = Queue.queue 
 
-    def __init__(self, identifier, tree_policy, default_policy, backup):
+    def __init__(self, identifier):
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
         self.ownDeck = []
-        self.tree_policy = tree_policy
-        self.default_policy = default_policy
-        self.backup = backup
+        #self.tree_policy = tree_policy
+        #self.default_policy = default_policy
+        #self.backup = backup
     
 #################################################
 ####            DECISION-MAKING             #####
@@ -81,6 +81,39 @@ class Agent:
         #receiveMessage(Chips, "Fold")
         #receiveMessage(Card)
         #receiveMessage(2 Cards)
+    
+    def receiveCards(self, card1, card2):
+        self.hand.append(card1)
+        self.hand.append(card2)
+
+#################################################
+####            AUXILIARY?               ########
+#################################################
+    
+    def getRoundBet(self):
+        return self.money.getRoundBet()
+    
+    def payBlind(self, amount):
+        self.money.bet(ammount)
+    
+    def makeBet(self, betAmount, raiseAmount):
+        action = self.randomChoice()
+        if action == "CALL":
+            self.money.bet(betAmount)
+            return "CALL"
+        elif action == "RAISE":
+            self.money.bet(betAmount + raiseAmount)
+            return "RAISE"
+        elif action == "FOLD":
+            return "FOLD"
+        elif action == "CHECK":
+            return "CHECK"
+
+
+
+    def reset(self):
+        self.hand = []
+        self.ownDeck = []
 
 #################################################
 ####            AUXILIARY               #########
@@ -152,7 +185,7 @@ class Agent:
                     return 27 + (secondRank -2)
         if len(repeats) == 2:
             #four of a kind
-             if 4 in repeats:
+            if 4 in repeats:
                 return 88 + (repeats[times.index(4)]-2)
             #full house
             else:

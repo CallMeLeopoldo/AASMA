@@ -10,7 +10,8 @@ class Chips:
     def __init__(self, value):
         self.initial = value
         self.current = value
-        self.bet = 0
+        self.gameBet = 0
+        self.roundBet = 0
         self.lost = 0
         self.gained = 0
 
@@ -18,34 +19,41 @@ class Chips:
     ####                 GETTERS                 #####
     ##################################################
 
-    def getInitial():
+    def getInitial(self):
         return self.initial
     
-    def getCurrent():
+    def getCurrent(self):
         return self.current
 
-    def getBet():
-        return self.bet
+    def getGameBet(self):
+        return self.gameBet
+    
+    def getRoundBet(self):
+        return self.roundBet
 
-    def getLost():
+    def getLost(self):
         return self.lost
 
-    def getGained():
+    def getGained(self):
         return self.gained
+
+    def resetRoundBet(self):
+        self.roundBet = 0
         
     ##################################################
     ####              GAME ACTIONS               #####
     ##################################################
     
-    def bet(blind):
-        self.bet += blind
+    def bet(self, blind):
+        self.gameBet += blind
+        self.roundBet += blind
         self.current -= blind
 
-    def fold():
+    def fold(self):
         self.lost += self.bet
         self.bet = 0
 
-    def collect(pot):
+    def collect(self, pot):
         self.current += pot
         self.gained += pot
         self.bet = 0
