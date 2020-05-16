@@ -3,7 +3,8 @@ from Agent import Agent
 
 class Table:
     
-    def __init__(self, numAgents, bigBlind):
+    def __init__(self, numRounds, numAgents, bigBlind):
+        self.numRounds = numRounds
         self.agents = {}
         self.deck = Deck()
         self.pot = 0
@@ -76,6 +77,7 @@ class Table:
         #for a in agents: a.decide ?
         #add chips to pot
         #update agents still playing
+        #if agents 
 
     
     #################################################
@@ -109,7 +111,7 @@ class Table:
         # pre flop: betting round
         self.bettingRound()
 
-        #discard card    --- dont remember if its here or not
+        # discard card
         self.discardCard()
 
         # flop: place 3 cards showing on table
@@ -119,13 +121,16 @@ class Table:
         self.bettingRound()
 
         # turn: double bet ammount and raise ammount
-        self.doubleAmmounts()       # não tenho a certeza se isto duplica outra vez para o river ou se se mantém
+        self.doubleAmmounts()
 
         # turn: add 1 card showing on table
         self.dealCardsTable(1)
 
         # turn: betting round
         self.bettingRound()
+
+        # turn: double bet ammount and raise ammount
+        self.doubleAmmounts()
 
         # river: add 1 card showing on table
         self.dealCardsTable(1)

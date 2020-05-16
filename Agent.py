@@ -117,7 +117,7 @@ class Agent:
             return 52 + (opt2-2)
         if opt2 != None and opt3 != None:
             #if its a royal flush
-            if opt2 = 10 and hand[0].getSuit() == "Spades":
+            if opt2 == 10 and hand[0].getSuit() == "Spades":
                 return 110
             #if its a straight flush
             else:
