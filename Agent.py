@@ -1,6 +1,7 @@
 from enum import Enum
 from queue import Queue
 from Chips import Chips
+from Deck import Deck
 #from MCTS import MCTS
 import utils
 import random
@@ -33,7 +34,7 @@ class Agent:
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
-        self.ownDeck = []
+        self.deck = Deck()
         self.currentBetAmount = 0
         self.currentRaiseAmount = 0
         self.state = None
@@ -96,6 +97,7 @@ class Agent:
     def receiveCards(self, cardList):
         for card in cardList:
             self.hand.append(card)
+            self.deck.removeCard(card.getName())
 
     def showHand(self):
         return self.rateHand(self.hand)
