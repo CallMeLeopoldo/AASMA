@@ -25,7 +25,7 @@ class Table:
 
         i = 0
         while i < numAgents:
-            agent = Agent(i)
+            agent = Agent(i, self)
             self.agents.append(agent)
             self.activeAgents.append(agent)
             i += 1
@@ -113,6 +113,7 @@ class Table:
                 self.addToPot(self.betAmount)
             elif "FOLD" in msg:
                 self.activeAgents.pop(self.turn)
+            nAgents -= 1
         
         bet = 0
         newRound = False
@@ -152,11 +153,12 @@ class Table:
 
     # TODO
     def sendMessage(self, agent, msg):
-        pass
+        self.activeAgents[agent].receiveMessage(msg)
     
     # TODO
     def receiveMessage(self, agent):
-        pass
+        return ''
+        #return self.activeAgents[agent].<somefunction>
 
     #################################################
     ####                  GAME                  #####
@@ -175,7 +177,7 @@ class Table:
             self.dealCardsAgent(a)
         
         # pre flop: betting round
-        if !self.bettingRound("PRE-FLOP", 0):
+        if not self.bettingRound("PRE-FLOP", 0):
             if len(self.activeAgents == 1):
                 self.activeAgents[0].receivePot(self.pot)
             return
@@ -188,33 +190,33 @@ class Table:
         self.dealCardsTable(3)
 
         # flop: betting round
-        if !self.bettingRound("FLOP", 0):
+        if not self.bettingRound("FLOP", 0):
             if len(self.activeAgents == 1):
                 self.activeAgents[0].receivePot(self.pot)
             return
 
         ################ TURN PHASE ################
         # turn: double bet ammount and raise ammount
-        self.doubleAmmounts()
+        self.doubleAmounts()
 
         # turn: add 1 card showing on table
         self.dealCardsTable(1)
 
         # turn: betting round
-        if !self.bettingRound("TURN", 0):
+        if not self.bettingRound("TURN", 0):
             if len(self.activeAgents == 1):
                 self.activeAgents[0].receivePot(self.pot)
             return
 
         ################ RIVER PHASE ################
         # river: double bet ammount and raise ammount
-        self.doubleAmmounts()
+        self.doubleAmounts()
 
         # river: add 1 card showing on table
         self.dealCardsTable(1)
 
         # river: betting round
-        if !self.bettingRound("RIVER", 0):
+        if not self.bettingRound("RIVER", 0):
             if len(self.activeAgents == 1):
                 self.activeAgents[0].receivePot(self.pot)
             return

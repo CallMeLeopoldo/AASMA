@@ -26,9 +26,10 @@ class Action(Enum):
 class Agent:
     desire = Desire.CALL
     action = Action.NONE
-    plan = Queue.queue 
+    plan = Queue().queue 
 
-    def __init__(self, identifier):
+    def __init__(self, identifier, table):
+        self.table = table
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
@@ -41,17 +42,17 @@ class Agent:
 ####            DECISION-MAKING             #####
 #################################################
 
-    def Monte_Carlo_Search(self):
-        mcts = MCTS(self.tree_policy, self.default_policy, self.backup)
-
-        root = Node(None, self.ownDeck, self.hand, self.tableGetState())
-        root.n += 1
-        root.sample_state()
-
-        action = mcts(root, self.ownDeck, self.hand)
+#    def Monte_Carlo_Search(self):
+#        mcts = MCTS(self.tree_policy, self.default_policy, self.backup)
+#
+#        root = Node(None, self.ownDeck, self.hand, self.tableGetState())
+#        root.n += 1
+#        root.sample_state()
+#
+#        action = mcts(root, self.ownDeck, self.hand)
     
     def randomChoice(self):
-        return action
+        return self.action
 
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
@@ -72,7 +73,7 @@ class Agent:
         pass
 
     def sendMessage(self):
-        table.sendMessage()
+        pass
 
         #sendMessage(Chips, "Fold")
         #sendMessage(Card)
@@ -87,7 +88,7 @@ class Agent:
             self.hand.append(card)
 
     def showHand(self):
-        return rateHand(self.hand)
+        return self.rateHand(self.hand)
 
     def receivePot(self, potAmount):
         self.money.collect(potAmount)
@@ -103,7 +104,7 @@ class Agent:
         return self.money.getCurrent()
     
     def payBlind(self, amount):
-        self.money.bet(ammount)
+        self.money.bet(amount)
     
     def makeBet(self, betAmount, raiseAmount):
         action = self.randomChoice()
@@ -131,7 +132,7 @@ class Agent:
         rating = 0
         best = None
         for hand in possible_hands:
-            curent = rateHand(hand)
+            current = self.rateHand(hand)
             if current > rating:
                 rating = current
                 best = hand
@@ -220,7 +221,7 @@ class Agent:
     def checkSequence(self, hand):
         temp = hand
         temp.sort()
-        i = 0:
+        i = 0
         seq = True
         while i < len(temp):
             if temp[i] != (temp[i+1] + 1):
@@ -228,7 +229,7 @@ class Agent:
                 break
             else:
                 i += 1
-        if !seq:
+        if not seq:
             return None
         else:
             return temp[0]
@@ -238,38 +239,38 @@ class Agent:
 ####            SENSORS                     #####
 #################################################
 
-    def checkMyCards(self):
-        return self.cards
-
-    def checkMyDeck(self):
-        return self.deck
-
-    def checkTableCards():
-        return table.cards
-    
-    def checkTurn():
-        return table.turn
-    
-    def checkMyChips(self):
-        return self.money.getCurrent()
-    
-    def checkTheirChips(self):
-        chips = []
-        for agent in table.agents:
-            chips.add(agent.cards)
-        return chips
-    
-    def checkPot():
-        return table.pot
-
-    def checkBlind():
-        return table.blind
-
-    def checkPlayRecords():
-        pass
-
-    def checkProfiles():
-        pass
-
-    def checkEnvironment():
-        pass
+#    def checkMyCards(self):
+#        return self.cards
+#
+#    def checkMyDeck(self):
+#        return self.deck
+#
+#    def checkTableCards():
+#        return table.cards
+#    
+#    def checkTurn():
+#        return table.turn
+#    
+#    def checkMyChips(self):
+#        return self.money.getCurrent()
+#    
+#    def checkTheirChips(self):
+#        chips = []
+#        for agent in table.agents:
+#            chips.add(agent.cards)
+#        return chips
+#    
+#    def checkPot():
+#        return table.pot
+#
+#    def checkBlind():
+#        return table.blind
+#
+#    def checkPlayRecords():
+#        pass
+#
+#    def checkProfiles():
+#        pass
+#
+#    def checkEnvironment():
+#        pass
