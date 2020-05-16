@@ -84,7 +84,7 @@ class Table:
     def dealCardsAgent(self, agent):
         card1 = self.deck.dealCard()
         card2 = self.deck.dealCard()
-        agent.receiveCards(card1, card2)
+        agent.receiveCards([card1, card2])
 
     def addToPot(self, amount):
         self.pot += amount
@@ -151,7 +151,6 @@ class Table:
     ####            COMMUNICATION               #####
     #################################################
 
-    # TODO
     def sendMessage(self, agent, msg):
         self.activeAgents[agent].receiveMessage(msg)
     
