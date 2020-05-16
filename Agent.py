@@ -41,7 +41,7 @@ class Agent:
 ####            DECISION-MAKING             #####
 #################################################
 
-    def decisionMaking(self):
+    def Monte_Carlo_Search(self):
         mcts = MCTS(self.tree_policy, self.default_policy, self.backup)
 
         root = Node(None, self.ownDeck, self.hand, self.tableGetState())
@@ -49,6 +49,9 @@ class Agent:
         root.sample_state()
 
         action = mcts(root, self.ownDeck, self.hand)
+    
+    def randomChoice(self):
+        return action
 
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
@@ -133,11 +136,11 @@ class Agent:
             return None
         #pair
         if len(repeats) == 4:
-            return 14+(repeats[times.index(2)]-2)
+            return 14 + (repeats[times.index(2)]-2)
         if len(repeats) == 3:
             #three of a kind
             if 3 in repeats:
-                return 14+(repeats[times.index(3)]-2)
+                return 40 + (repeats[times.index(3)]-2)
             #two pair
             else:
                 firstRank = repeats[times.index(2)]
