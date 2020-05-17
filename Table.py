@@ -117,11 +117,11 @@ class Table:
 
         nAgents = len(self.activeAgents)
         toRemove = []
+
         while nAgents > 0:
             self.passTurn() 
             msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise])
             #msg = self.receiveMessage(self.turn)
-            print(msg)
             if "RAISE" == msg[0]:
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)
@@ -138,10 +138,10 @@ class Table:
         for el in toRemove:
             self.activeAgents.remove(el)
 
-        bet = 0
+        bet = -1
         newRound = False
         for a in self.activeAgents:
-            if bet == 0:
+            if bet == -1:
                 bet = a.getRoundBet()
             elif a.getRoundBet() != bet:
                 newRound = True
@@ -193,7 +193,7 @@ class Table:
     def gameRound(self):
         
         ################ PRE GAME PHASE ################
-        print("------------PRE-GAME PHASE------------")
+        #print("------------PRE-GAME PHASE------------")
         self.turn = self.dealer
 
         # pay small blind and big blind
@@ -205,7 +205,7 @@ class Table:
         for a in self.agents:
             self.dealCardsAgent(a)
         
-        print("------------PRE-FLOP PHASE------------")
+        #print("------------PRE-FLOP PHASE------------")
         # pre flop: betting round
         if not self.bettingRound("PRE-FLOP", 0):
             if len(self.activeAgents) == 1:
@@ -213,7 +213,7 @@ class Table:
             return
 
         ################ FLOP PHASE ################
-        print("------------FLOP PHASE------------")
+        #print("------------FLOP PHASE------------")
         # discard card
         self.discardCard()
 
@@ -227,7 +227,7 @@ class Table:
             return
 
         ################ TURN PHASE ################
-        print("------------TURN PHASE------------")
+        #print("------------TURN PHASE------------")
         # turn: double bet ammount and raise ammount
         self.doubleAmounts()
 
@@ -241,7 +241,7 @@ class Table:
             return
 
         ################ RIVER PHASE ################
-        print("------------RIVER PHASE------------")
+        #print("------------RIVER PHASE------------")
         # river: double bet ammount and raise ammount
         self.doubleAmounts()
 
@@ -273,10 +273,10 @@ class Table:
     
     
     def game(self, rounds):
-        print("##################### STARTING THE GAME #####################")
+        #print("##################### STARTING THE GAME #####################")
         r = 0
         while r < rounds:
-            print("################### ROUND NO." + str(r+1) + " ###################")
+            #print("################### ROUND NO." + str(r+1) + " ###################")
             if len(self.agents) <= 1:
                 break
             self.gameRound()
@@ -288,7 +288,7 @@ class Table:
             #        msg = msg + str(a.id) + "; "
             #print("Agents currently playing: " + msg)
             self.reset(self.bigBlind)
-            print("Reseting conditions")
+            #print("Reseting conditions")
             r += 1
 
 

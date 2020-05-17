@@ -42,6 +42,9 @@ class Agent:
         #self.default_policy = default_policy
         #self.backup = backup
     
+    def getId(self):
+        return self.id
+    
 #################################################
 ####            DECISION-MAKING             #####
 #################################################
