@@ -156,6 +156,7 @@ class Table:
             else:
                 for a in self.activeAgents:
                     a.resetRoundBet()
+                    a.calculateRoundAverage(counter+1)
                 return True
 
     

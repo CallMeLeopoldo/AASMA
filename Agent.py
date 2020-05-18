@@ -40,6 +40,8 @@ class Agent:
         self.currentBetAmount = 0
         self.currentRaiseAmount = 0
         self.state = None
+        self.roundHistory = []
+        self.roundAverage = 0
         #self.tree_policy = tree_policy
         #self.default_policy = default_policy
         #self.backup = backup
@@ -126,6 +128,10 @@ class Agent:
 #################################################
 ####            AUXILIARY?               ########
 #################################################
+    
+    def calculateRoundAverage(self, counter):
+        self.roundHistory.append(counter)
+        self.roundAverage = sum(self.roundHistory)/len(self.roundHistory)
     
     def getRoundBet(self):
         return self.money.getRoundBet()
