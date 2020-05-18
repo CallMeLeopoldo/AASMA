@@ -33,7 +33,9 @@ class Card:
             return True
         return False
     
-
+    def __sort__(self):
+        #Useful for ordering lists of cards, to help classify each hand
+        pass
 
 class Deck:
 

@@ -2,7 +2,8 @@ from enum import Enum
 from queue import Queue
 from Chips import Chips
 from Deck import Deck
-#from MCTS import MCTS
+from MCTS import MCTS
+from Node import StepNode
 import utils
 import random
 import itertools
@@ -66,6 +67,12 @@ class Agent:
             del actions[1]
         self.action = random.choice(actions)
         return self.action
+
+    def makePlay(self):
+        tree = MCTS()
+        for _ in range(50):
+            tree.dorollout(table)
+        table = tree.choose(table)
 
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
@@ -133,7 +140,17 @@ class Agent:
         self.resetRoundBet()
     
     def makeBet(self, betAmount, raiseAmount, canCheck, canRaise):
-        action = self.randomChoice(canCheck, canRaise)
+        #action = self.randomChoice(canCheck, canRaise)
+
+        tree = MCTS()
+        root = StepNode(None, self.deck, self.hand, self.table.gameState)
+        for _ in range(50):
+            tree.rollout(root)
+        print(self.table.gameState)
+        print(root._isTerminal())
+        action = tree.choose(root)
+
+
         if action.name == "CALL":
             self.money.bet(betAmount)
             return "CALL"
