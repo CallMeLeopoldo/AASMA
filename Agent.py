@@ -35,6 +35,7 @@ class Agent:
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
+        self.cardHistory = []
         self.deck = Deck()
         self.currentBetAmount = 0
         self.currentRaiseAmount = 0
@@ -113,11 +114,11 @@ class Agent:
     
     def receiveCards(self, cardList):
         for card in cardList:
-            self.hand.append(card)
+            self.cardHistory.append(card)
             self.deck.removeCard(card.getName())
 
     def showHand(self):
-        return self.rateHand(self.hand)
+        return self.rateHand(self.cardHistory)
 
     def receivePot(self, potAmount):
         self.money.collect(potAmount)
@@ -143,7 +144,7 @@ class Agent:
         #action = self.randomChoice(canCheck, canRaise)
 
         tree = MCTS()
-        root = StepNode(None, self.deck, self.hand, self.table.gameState)
+        root = StepNode(None, self.deck, self.cardHistory, self.table.gameState)
         for _ in range(50):
             tree.rollout(root)
         print(self.table.gameState)
@@ -164,6 +165,7 @@ class Agent:
 
     def reset(self):
         self.hand = []
+        self.cardHistory = []
         self.deck = Deck()
 
 #################################################
@@ -174,7 +176,7 @@ class Agent:
         return card.getNumericalValue()
 
     def findHand(self):
-        possible_hands = itertools(self.hand, 5)
+        possible_hands = itertools(self.cardHistory, 5)
         rating = 0
         best = None
         for hand in possible_hands:
