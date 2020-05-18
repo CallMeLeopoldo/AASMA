@@ -188,24 +188,30 @@ class Agent:
     
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)
-        #if it has more than one card of the same rank its not a sequence or a flush
         opt2 = self.checkSequence(hand)
         opt3 = self.checkSuits(hand)
         #if its a high card
-        if opt2 == None and opt3 == None and opt1 == None:
+        if opt1 == None and opt2 == None and opt3 == None:
             temp = hand
             temp.sort(key=self.returnRank)
             return temp[-1].getNumericalValue() - 1
         #if its a pair/two pairs/three of a kind/four of a kind/full house
-        if opt2 == None and opt3 == None and opt1 != None:
+        if opt1 != None and opt2 == None and opt3 == None:
             return opt1
-        #if its a flush
-        if opt2 == None and opt3 != None:
-            return 62 + (opt3.getNumericalValue()-2)
         #if its a straight
-        if opt2 != None and opt3 == None:
+        if opt1 == None and opt2 != None and opt3 == None:
             return 52 + (opt2.getNumericalValue()-2)
-        if opt2 != None and opt3 != None:
+        #if its just a flush 
+        if opt1 == None and opt2 == None and opt3 != None:
+            return 62 + (opt3.getNumericalValue()-2)
+        #if its a flush and repeated cards see which one is higher
+        if opt1 != None and opt2 == None and opt3 != None:
+            if opt1 > opt3:
+                return opt1
+            else:
+                return 62 + (opt3.getNumericalValue()-2)
+        #if its a flush and a sequence
+        if opt1 == None opt2 != None and opt3 != None:
             #if its a royal flush
             if opt2.getNumericalValue() == 10 and hand[0].getSuit() == "Spades":
                 return 110
