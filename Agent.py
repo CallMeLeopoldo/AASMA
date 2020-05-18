@@ -206,14 +206,14 @@ class Agent:
             return 62 + (opt3.getNumericalValue()-2)
         #if its a flush and repeated cards see which one is higher
         if opt1 != None and opt2 == None and opt3 != None:
-            if opt1 > opt3:
+            if opt1 > 62 + (opt3.getNumericalValue()-2):
                 return opt1
             else:
                 return 62 + (opt3.getNumericalValue()-2)
         #if its a flush and a sequence
-        if opt1 == None opt2 != None and opt3 != None:
+        if opt1 == None and opt2 != None and opt3 != None:
             #if its a royal flush
-            if opt2.getNumericalValue() == 10 and hand[0].getSuit() == "Spades":
+            if opt2.getNumericalValue() == 10:
                 return 110
             #if its a straight flush
             else:

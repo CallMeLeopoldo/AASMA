@@ -47,13 +47,14 @@ class Action():
                 new_deck.removeCard(new_card.getName())
                 print(new_card)
                 self.node.cardHistory.append(new_card)
-                self.node.findBestHand(self.node.cardHistory)
+                #POSSIBLE TODO: Make sure the probability of hand to show impacts the heuristic
+                #self.node.findBestHand(self.node.cardHistory)
                 if(self.level == 1):
-                    child = StepNode(node,"TURN", new_deck, new_hand)
+                    child = StepNode(node,"TURN", new_deck, self.node.cardHistory)
                 elif(self.level == 3):
-                    child = StepNode(node,"RIVER", new_deck, new_hand)
+                    child = StepNode(node,"RIVER", new_deck, self.node.cardHistory)
                 elif(self.level == 5):
-                    child = StepNode(node,"SHOWDOWN", new_deck, new_hand)
+                    child = StepNode(node,"SHOWDOWN", new_deck, self.node.cardHistory)
                 child.level = self.level + 1
                 return child
         else:
@@ -102,8 +103,107 @@ class StepNode(Node):
         self.hand = best
 
     def rateHand(self, hand):
-        #rules for the hands. use a linear rating here
-        pass
+        opt1 = self.checkRanks(hand)
+        opt2 = self.checkSequence(hand)
+        opt3 = self.checkSuits(hand)
+        #if its a high card
+        if opt1 == None and opt2 == None and opt3 == None:
+            temp = hand
+            temp.sort(key=self.returnRank)
+            return temp[-1].getNumericalValue() - 1
+        #if its a pair/two pairs/three of a kind/four of a kind/full house
+        if opt1 != None and opt2 == None and opt3 == None:
+            return opt1
+        #if its a straight
+        if opt1 == None and opt2 != None and opt3 == None:
+            return 52 + (opt2.getNumericalValue()-2)
+        #if its just a flush 
+        if opt1 == None and opt2 == None and opt3 != None:
+            return 62 + (opt3.getNumericalValue()-2)
+        #if its a flush and repeated cards see which one is higher
+        if opt1 != None and opt2 == None and opt3 != None:
+            if opt1 > 62 + (opt3.getNumericalValue()-2):
+                return opt1
+            else:
+                return 62 + (opt3.getNumericalValue()-2)
+        #if its a flush and a sequence
+        if opt1 == None and opt2 != None and opt3 != None:
+            #if its a royal flush
+            if opt2.getNumericalValue() == 10:
+                return 110
+            #if its a straight flush
+            else:
+                return 101 + (opt2.getNumericalValue()-2)
+    
+    def checkRanks(self, hand):
+        repeats = []
+        times = []
+        for card in hand:
+            if card.getValue() in repeats:
+                times[repeats.index(card.getNumericalValue())] += 1
+            else:
+                repeats.append(card.getNumericalValue())
+                times.append(1)
+        if len(repeats) == 5:
+            return None
+        #pair
+        if len(repeats) == 4:
+            return 14 + (repeats[times.index(2)]-2)
+        if len(repeats) == 3:
+            #three of a kind
+            if 3 in times:
+                return 40 + (repeats[times.index(3)]-2)
+            #two pair
+            else:
+                firstRank = repeats[times.index(2)]
+                times.pop(firstRank)
+                secondRank = repeats[times.index(2)]
+                if firstRank > secondRank:
+                    return 27 + (firstRank -2)
+                else:
+                    return 27 + (secondRank -2)
+        if len(repeats) == 2:
+            #four of a kind
+            if 4 in times:
+                return 88 + (repeats[times.index(4)]-2)
+            #full house
+            else:
+                return 75 + (repeats[times.index(3)]-2)
+
+    def checkSuits(self, hand):
+        #clubs diamonds hearts spades
+        suits = [0, 0, 0, 0]
+        for card in hand:
+            if card.getSuit() == "Clubs":
+                suits[0] += 1
+            elif card.getSuit() == "Diamonds":
+                suits[1] += 1
+            elif card.getSuit() == "Hearts":
+                suits[2] += 1
+            elif card.getSuit() == "Spades":
+                suits[3] += 1
+        if 5 not in suits:
+            return None
+        else:
+            temp = hand
+            temp.sort(key=self.returnRank)
+            return temp[-1]
+    
+    def checkSequence(self, hand):
+        temp = hand
+        temp.sort(key=self.returnRank)
+        i = 0
+        seq = True
+        while i < len(temp):
+            if temp[i].getNumericalValue() != (temp[i+1].getNumericalValue() + 1):
+                seq = False
+                break
+            else:
+                i += 1
+        if not seq:
+            return None
+        else:
+            return temp[0]
 
     def getReward(self):
         if (self.state == "SHOWDOWN"):
