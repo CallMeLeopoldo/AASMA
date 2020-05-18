@@ -46,8 +46,8 @@ class Action():
                 new_deck = self.node.deck
                 new_deck.removeCard(new_card.getName())
                 print(new_card)
-                self.node.hand.append(new_card)
-                new_hand = self.node.findBestHand(self.node.hand)
+                self.node.cardHistory.append(new_card)
+                self.node.findBestHand(self.node.cardHistory)
                 if(self.level == 1):
                     child = StepNode(node,"TURN", new_deck, new_hand)
                 elif(self.level == 3):
@@ -63,13 +63,14 @@ class StepNode(Node):
     """
     A node holding a state in the tree.
     """
-    def __init__(self, parent, deck, hand, state):
+    def __init__(self, parent, deck, cardHistory, state):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0
         self.level = 0
         self.deck = deck
-        self.hand = hand
+        self.hand = None
+        self.cardHistory = cardHistory
         #self.flop = flop
         self.giveUp = False
     
@@ -89,7 +90,7 @@ class StepNode(Node):
         print(cardList)
         #cardList = self.flop + self.hand
         #PERGUNTAR À EVANS SE ESTE POSSIBLE HANDS É AS COMBINAÇÕES POSSIVEIS COM AS CARTAS QUE TENHO OU NÃO
-        possible_hands = itertools.product(cardList)
+        possible_hands = itertools.combinations(cardList,5)
         rating = 0
         best = None
         current = 0
@@ -98,7 +99,7 @@ class StepNode(Node):
             if current > rating:
                 rating = current
                 best = hand
-        return best
+        self.hand = best
 
     def rateHand(self, hand):
         #rules for the hands. use a linear rating here

@@ -176,7 +176,7 @@ class Agent:
         return card.getNumericalValue()
 
     def findHand(self):
-        possible_hands = itertools(self.cardHistory, 5)
+        possible_hands = itertools.combinations(self.cardHistory, 5)
         rating = 0
         best = None
         for hand in possible_hands:
@@ -189,15 +189,16 @@ class Agent:
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)
         #if it has more than one card of the same rank its not a sequence or a flush
-        if opt1 != None:
-            return opt1
         opt2 = self.checkSequence(hand)
         opt3 = self.checkSuits(hand)
         #if its a high card
-        if opt2 == None and opt3 == None:
+        if opt2 == None and opt3 == None and opt1 == None:
             temp = hand
             temp.sort(key=self.returnRank)
             return temp[-1].getNumericalValue() - 1
+        #if its a pair/two pairs/three of a kind/four of a kind/full house
+        if opt2 == None and opt3 == None and opt1 != None:
+            return opt1
         #if its a flush
         if opt2 == None and opt3 != None:
             return 62 + (opt3.getNumericalValue()-2)
@@ -228,7 +229,7 @@ class Agent:
             return 14 + (repeats[times.index(2)]-2)
         if len(repeats) == 3:
             #three of a kind
-            if 3 in repeats:
+            if 3 in times:
                 return 40 + (repeats[times.index(3)]-2)
             #two pair
             else:
@@ -241,7 +242,7 @@ class Agent:
                     return 27 + (secondRank -2)
         if len(repeats) == 2:
             #four of a kind
-            if 4 in repeats:
+            if 4 in times:
                 return 88 + (repeats[times.index(4)]-2)
             #full house
             else:
