@@ -2,6 +2,7 @@ from Deck import Deck
 from Deck import Card
 import ratings
 import random
+import copy
 import math
 import itertools
 
@@ -44,11 +45,10 @@ class Action():
         if  not self.node.deck.isEmpty():
             i = 0
             children = []
-            while i < len(self.node.deck.getCards()): 
+            while i < len(self.node.deck.getCards()):
                 new_card = self.node.deck.getCards()[i]
-                new_deck = self.node.deck
+                new_deck = copy.deepcopy(self.node.deck)
                 new_deck.removeCard(new_card.getName())
-                print(new_card)
                 #POSSIBLE TODO: Make sure the probability of hand to show impacts the heuristic
                 #self.node.findBestHand(self.node.cardHistory)
 
@@ -68,6 +68,7 @@ class Action():
                 if(child.state == "TURN" or child.state == "RIVER"):
                     child.currentBetAmount = self.node.currentBetAmount * 2
                     child.raiseAmount = self.node.raiseAmount * 2
+
                     if(self.action == "CALL"):
                         child.pot = self.node.pot + child.currentBetAmount * child.roundAverage * child.numPlayers
                         child.gameBet = self.node.gameBet + child.currentBetAmount * child.roundAverage
@@ -75,9 +76,15 @@ class Action():
                     if(self.action == "RAISE"):
                         child.pot = self.node.pot + (child.currentBetAmount + child.raiseAmount) * child.roundAverage * child.numPlayers
                         child.gameBet = self.node.gameBet + (child.currentBetAmount + child.raiseAmount) * child.roundAverage
-                        print("IT'S THIS " + str(child.gameBet) + " and level " + child.state)
+                
+                    if(self.action == "FOLD" or self.action == "CHECK"):
+                        child.pot = self.node.pot
+                        child.gameBet = self.node.gameBet
+
                 i += 1
-            return child
+                children.append(child)
+
+            return children
         else:
             print("Action node is working in an empty deck")
 
@@ -113,7 +120,9 @@ class StepNode(Node):
 
     def find_random_child(self):
         action = Action(self.randomChild(),self)
-        return random.choice(action.sample_state())
+        lst = action.sample_state()
+        print("length i guess " + str(len(lst)))
+        return random.choice(lst)
 
     def returnRank(self, card):
         return card.getNumericalValue()
