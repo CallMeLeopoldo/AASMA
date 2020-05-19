@@ -65,11 +65,6 @@ class Agent:
         self.action = random.choice(actions)
         return self.action
 
-    def makePlay(self):
-        tree = MCTS()
-        for _ in range(50):
-            tree.dorollout(table)
-        table = tree.choose(table)
 
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
@@ -143,26 +138,29 @@ class Agent:
     def makeBet(self, betAmount, raiseAmount, canCheck, canRaise):
         #action = self.randomChoice(canCheck, canRaise)
 
-        tree = MCTS()
-        root = StepNode(None, 0, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.roundAverage, 
-                    self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
-        for _ in range(50):
-            tree.rollout(root)
-        print(self.table.gameState)
-        print(root._isTerminal())
-        action = tree.choose(root)
+        if self.state != "PRE-FLOP":
+            tree = MCTS()
+            root = StepNode(None, 0, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.roundAverage, 
+                        self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
+            for _ in range(50):
+                tree.rollout(root)
+            print(self.table.gameState)
+            print(root._isTerminal())
+            action = tree.choose(root)
 
-
-        if action.name == "CALL":
+            if action.name == "CALL":
+                self.money.bet(betAmount)
+                return "CALL"
+            elif action.name == "RAISE":
+                self.money.bet(betAmount + raiseAmount)
+                return "RAISE"
+            elif action.name == "FOLD":
+                return "FOLD"
+            elif action.name == "CHECK":
+                return "CHECK"
+        else:
             self.money.bet(betAmount)
             return "CALL"
-        elif action.name == "RAISE":
-            self.money.bet(betAmount + raiseAmount)
-            return "RAISE"
-        elif action.name == "FOLD":
-            return "FOLD"
-        elif action.name == "CHECK":
-            return "CHECK"
 
     def reset(self):
         self.hand = []
