@@ -29,7 +29,6 @@ class MCTS(object):
         print("this is reward")
         print(reward)
         self.backPropagate(path, reward)
-        print(len(self.children[node][0]))
 
     def choose(self, node):
         "Choose the best successor of node. (Choose a move in the game)"
