@@ -8,12 +8,6 @@ import utils
 import random
 import itertools
 
-class Desire(Enum):
-    CALL = "call"
-    RAISE = "raise"
-    CHECK = "check"
-    FOLD = "fold"
-
 class Action(Enum):
     #NONE = "none"
     CALL = "call"
@@ -150,7 +144,7 @@ class Agent:
         #action = self.randomChoice(canCheck, canRaise)
 
         tree = MCTS()
-        root = StepNode(None, self.deck, self.cardHistory, self.table.gameState)
+        root = StepNode(None, self.deck, self.cardHistory, self.table.gameState, self.roundAverage, self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.raiseAmount)
         for _ in range(50):
             tree.rollout(root)
         print(self.table.gameState)

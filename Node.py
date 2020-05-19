@@ -46,16 +46,29 @@ class Action():
                 new_deck = self.node.deck
                 new_deck.removeCard(new_card.getName())
                 print(new_card)
-                self.node.cardHistory.append(new_card)
                 #POSSIBLE TODO: Make sure the probability of hand to show impacts the heuristic
                 #self.node.findBestHand(self.node.cardHistory)
-                if(self.level == 1):
-                    child = StepNode(node,"TURN", new_deck, self.node.cardHistory)
-                elif(self.level == 3):
-                    child = StepNode(node,"RIVER", new_deck, self.node.cardHistory)
-                elif(self.level == 5):
-                    child = StepNode(node,"SHOWDOWN", new_deck, self.node.cardHistory)
-                child.level = self.level + 1
+
+                if(self.node.level == 1):
+                    child = StepNode(node, self.node.level + 1, self.node.numPlayers, "TURN", new_deck, self.node.cardHistory, self.node.roundAverage)
+                elif(self.node.level == 3):
+                    child = StepNode(node,self.node.level + 1,self.node.numPlayers, "RIVER", new_deck, self.node.cardHistory, self.node.roundAverage)
+                elif(self.node.level == 5):
+                    child = StepNode(node,self.node.level + 1,self.node.numPlayers,"SHOWDOWN", new_deck, self.node.cardHistory, self.node.roundAverage)
+
+                child.cardHistory.append(new_card)
+
+                if(child.node.state == "TURN" or child.node.state == "RIVER"):
+                    child.currentBetAmount = self.node.currentBetAmount * 2
+                    child.raiseAmount = self.node.raiseAmount * 2
+                    if(self.action == "CALL"):
+                        child.pot += child.currentBetAmount * child.roundAverage * child.numPlayers
+                        child.gameBet += child.currentBetAmount * child.roundAverage
+                
+                    if(self.action == "RAISE"):
+                        child.pot += (child.currentBetAmount + child.raiseAmount) * child.roundAverage * child.numPlayers
+                        child.gameBet += (child.currentBetAmount + child.raiseAmount) * child.roundAverage
+
                 return child
         else:
             print("Action node is working in an empty deck")
@@ -64,16 +77,22 @@ class StepNode(Node):
     """
     A node holding a state in the tree.
     """
-    def __init__(self, parent, deck, cardHistory, state):
+    def __init__(self, parent, level, numPlayers, state, deck, cardHistory, roundAverage, pot = None, gameBet = None, currentBetAmount = None , raiseAmount = None):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0
-        self.level = 0
+        self.level = level
+        self.numPlayers = numPlayers
         self.deck = deck
         self.hand = None
         self.cardHistory = cardHistory
         #self.flop = flop
         self.giveUp = False
+        self.roundAverage = roundAverage
+        self.pot = pot
+        self.gameBet = self.gameBet
+        self.currentBetAmount = currentBetAmount
+        self.raiseAmount = raiseAmount
     
     def find_children(self):
         children = []
