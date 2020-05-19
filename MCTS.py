@@ -21,10 +21,15 @@ class MCTS(object):
 
     def rollout(self, node):
         path = self.select(node)
+        print(path)
         leaf = path[-1]
         self.expand(leaf)
         reward = self.simulate(leaf)
+        print(path)
+        print("this is reward")
+        print(reward)
         self.backPropagate(path, reward)
+        print(len(self.children[node][0]))
 
     def choose(self, node):
         "Choose the best successor of node. (Choose a move in the game)"
@@ -50,6 +55,8 @@ class MCTS(object):
                 # node is either unexplored or terminal
                 return path
             unexplored = self.children[node] - self.children.keys()
+            print("this is unexplored")
+            print(unexplored)
             if unexplored:
                 n = unexplored.pop()
                 path.append(n)
@@ -74,6 +81,7 @@ class MCTS(object):
     def simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"
         i = 0
+        print("simulation started")
         while True:
             if node.isTerminal():
                 print(":3c")
