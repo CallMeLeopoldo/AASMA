@@ -68,12 +68,12 @@ class Action():
                     child.currentBetAmount = self.node.currentBetAmount * 2
                     child.raiseAmount = self.node.raiseAmount * 2
                     if(self.action == "CALL"):
-                        child.pot += child.currentBetAmount * child.roundAverage * child.numPlayers
-                        child.gameBet += child.currentBetAmount * child.roundAverage
+                        child.pot = self.node.pot + child.currentBetAmount * child.roundAverage * child.numPlayers
+                        child.gameBet = self.node.gameBet + child.currentBetAmount * child.roundAverage
                 
                     if(self.action == "RAISE"):
-                        child.pot += (child.currentBetAmount + child.raiseAmount) * child.roundAverage * child.numPlayers
-                        child.gameBet += (child.currentBetAmount + child.raiseAmount) * child.roundAverage
+                        child.pot = self.node.pot + (child.currentBetAmount + child.raiseAmount) * child.roundAverage * child.numPlayers
+                        child.gameBet = self.node.gameBet + (child.currentBetAmount + child.raiseAmount) * child.roundAverage
 
                 return child
         else:
@@ -84,7 +84,7 @@ class StepNode(Node):
     A node holding a state in the tree.
     """
     def __init__(self, parent, level, numPlayers, state, deck, cardHistory, roundAverage, 
-                pot = None, gameBet = None, currentBetAmount = None , raiseAmount = None):
+                pot = 0, gameBet = 0, currentBetAmount = 0, raiseAmount = 0):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0
@@ -110,19 +110,21 @@ class StepNode(Node):
         return children
 
     def find_random_child(self):
-        action = self.randomChild()
-        return action.sample_state(self)
+        action = Action(self.randomChild(),self)
+        return action.sample_state()
+
+    def returnRank(self, card):
+        return card.getNumericalValue()
 
     def findBestHand(self, cardList, returnRating = False):
         print(cardList)
         #cardList = self.flop + self.hand
-        #PERGUNTAR À EVANS SE ESTE POSSIBLE HANDS É AS COMBINAÇÕES POSSIVEIS COM AS CARTAS QUE TENHO OU NÃO
         possible_hands = itertools.combinations(cardList,5)
         rating = 0
         best = None
         current = 0
         for hand in possible_hands:
-            curent = rateHand(hand)
+            current = self.rateHand(list(hand))
             if current > rating:
                 rating = current
                 best = hand
@@ -167,7 +169,7 @@ class StepNode(Node):
         repeats = []
         times = []
         for card in hand:
-            if card.getValue() in repeats:
+            if card.getNumericalValue() in repeats:
                 times[repeats.index(card.getNumericalValue())] += 1
             else:
                 repeats.append(card.getNumericalValue())
@@ -184,7 +186,7 @@ class StepNode(Node):
             #two pair
             else:
                 firstRank = repeats[times.index(2)]
-                times.pop(firstRank)
+                times[times.index(2)] = 0
                 secondRank = repeats[times.index(2)]
                 if firstRank > secondRank:
                     return 27 + (firstRank -2)
@@ -237,7 +239,7 @@ class StepNode(Node):
         if (self.state == "SHOWDOWN"):
             key = self.findBestHand(self.cardHistory,True)
             probValue = ratings.probs[key]
-            hrating = exp(4*ratings.heuristic[key]/28)
+            hrating = math.exp(4*ratings.heuristic[key]/28)
             return 0.25 * probValue + 0.25 * hrating + 0.2 * self.pot + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
 
     def isTerminal(self):

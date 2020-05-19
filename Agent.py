@@ -181,7 +181,7 @@ class Agent:
         rating = 0
         best = None
         for hand in possible_hands:
-            current = self.rateHand(hand)
+            current = self.rateHand(list(hand))
             if current > rating:
                 rating = current
                 best = hand
