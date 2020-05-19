@@ -69,6 +69,7 @@ class MCTS(object):
         if node in self.children:
             return  # already expanded
         self.children[node] = node.find_children()
+        print(len(self.children[node]))
 
     def simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"

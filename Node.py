@@ -43,6 +43,7 @@ class Action():
     def sample_state(self):
         if  not self.node.deck.isEmpty():
             i = 0
+            children = []
             while i < len(self.node.deck.getCards()): 
                 new_card = self.node.deck.getCards()[i]
                 new_deck = self.node.deck
@@ -74,8 +75,9 @@ class Action():
                     if(self.action == "RAISE"):
                         child.pot = self.node.pot + (child.currentBetAmount + child.raiseAmount) * child.roundAverage * child.numPlayers
                         child.gameBet = self.node.gameBet + (child.currentBetAmount + child.raiseAmount) * child.roundAverage
-
-                return child
+                        print("IT'S THIS " + str(child.gameBet) + " and level " + child.state)
+                i += 1
+            return child
         else:
             print("Action node is working in an empty deck")
 
@@ -111,7 +113,7 @@ class StepNode(Node):
 
     def find_random_child(self):
         action = Action(self.randomChild(),self)
-        return action.sample_state()
+        return random.choice(action.sample_state())
 
     def returnRank(self, card):
         return card.getNumericalValue()
@@ -237,6 +239,7 @@ class StepNode(Node):
 
     def getReward(self):
         if (self.state == "SHOWDOWN"):
+            print(self.gameBet)
             key = self.findBestHand(self.cardHistory,True)
             probValue = ratings.probs[key]
             hrating = math.exp(4*ratings.heuristic[key]/28)
@@ -252,8 +255,10 @@ class StepNode(Node):
 
     def randomChild(self):
         if self.isTerminal():
-            return None  # If the game is finished then no moves can be made        
-        return random.choice(self.untried_actions())    
+            return None  # If the game is finished then no moves can be made
+        action = random.choice(self.untried_actions())   
+        print(action)        
+        return action 
 
     def __str__(self):
         return "State: {}".format(self.state)

@@ -65,7 +65,6 @@ class Agent:
         self.action = random.choice(actions)
         return self.action
 
-
 #################################################
 ####         REACTIVE BEHAVIOUR             #####
 #################################################
