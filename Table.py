@@ -207,8 +207,10 @@ class Table:
             self.dealCardsAgent(a)
         
         #print("------------PRE-FLOP PHASE------------")
+        self.gameState = "PRE-FLOP"
+
         # pre flop: betting round
-        if not self.bettingRound("PRE-FLOP", 0):
+        if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
@@ -221,8 +223,9 @@ class Table:
         # flop: place 3 cards showing on table
         self.dealCardsTable(3)
 
+        self.gameState = "FLOP"
         # flop: betting round
-        if not self.bettingRound("FLOP", 0):
+        if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
@@ -235,8 +238,9 @@ class Table:
         # turn: add 1 card showing on table
         self.dealCardsTable(1)
 
+        self.gameState = "TURN"
         # turn: betting round
-        if not self.bettingRound("TURN", 0):
+        if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
@@ -249,14 +253,16 @@ class Table:
         # river: add 1 card showing on table
         self.dealCardsTable(1)
 
+        self.gameState = "RIVER"
         # river: betting round
-        if not self.bettingRound("RIVER", 0):
+        if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
 
         ################ SHOWDOWN PHASE ################
         
+        self.gameState = "SHOWDOWN"
         best = []
         cardRank = 0
         for a in self.activeAgents:

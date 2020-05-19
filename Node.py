@@ -41,7 +41,7 @@ class Action():
         self.action = action
         self.node = node
 
-    def sample_state(self):
+    def sample_state(self, lst=None):
         if  not self.node.deck.isEmpty():
             i = 0
             children = []
@@ -57,8 +57,12 @@ class Action():
 
                 
                 print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
-                children.append(child)
-                return children
+                if lst == None:
+                    children.append(child)
+                    return children
+                else:
+                    lst.append(child)
+                    return
 
             else:
                 while i < len(self.node.deck.getCards()):
@@ -105,11 +109,17 @@ class Action():
                             child.gameBet = self.node.gameBet
 
                     i += 1
-                    children.append(child)
+                    if lst == None:
+                        children.append(child)
+                    else:
+                        lst.append(child)
                     print("this is my game bet " + str(child.gameBet))
 
                 print(i)
-                return children
+                if lst == None:
+                    return children
+                else:
+                    return
         else:
             print("Action node is working in an empty deck")
 
@@ -259,8 +269,8 @@ class StepNode(Node):
             return temp[0]
 
     def getReward(self):
-        if (self.state == "SHOWDOWN"):
-            print("this is the game bet: " + str(self.gameBet))
+        if (self.state == "SHOWDOWN" or self.giveUp):
+            print("this is the game bet in get reward: " + str(self.gameBet))
             key = self.findBestHand(self.cardHistory,True)
             print("yo")
             probValue = ratings.probs[key]
@@ -271,8 +281,9 @@ class StepNode(Node):
         children = []
         for action in self.untried_actions():
             act = Action(action, self)
-            newState = act.sample_state()
-            children.append(newState)
+            act.sample_state(children)
+            #newState = act.sample_state()
+            #children.append(newState)
         return children
 
     def find_random_child(self):

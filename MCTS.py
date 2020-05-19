@@ -76,8 +76,9 @@ class MCTS(object):
         i = 0
         while True:
             if node.isTerminal():
-                print(":3c")
+                print(":3c " + str(node.state) + " " + str(node.level))
                 reward = node.getReward()
+                print("this is reward value in simulate " + str(reward))
                 return reward
             node = node.find_random_child()
             i += 1
@@ -85,6 +86,7 @@ class MCTS(object):
     def backPropagate(self, path, reward):
         "Send the reward back up to the ancestors of the leaf"
         for node in reversed(path):
+            print("this is reward value in backpropagate " + str(reward))
             self.N[node] += 1
             self.Q[node] += reward
 

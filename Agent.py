@@ -144,7 +144,7 @@ class Agent:
             for _ in range(50):
                 tree.rollout(root)
             print(self.table.gameState)
-            print(root._isTerminal())
+            #print(root.isTerminal())
             action = tree.choose(root)
 
             if action.name == "CALL":
