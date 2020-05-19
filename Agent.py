@@ -144,7 +144,8 @@ class Agent:
         #action = self.randomChoice(canCheck, canRaise)
 
         tree = MCTS()
-        root = StepNode(None, self.deck, self.cardHistory, self.table.gameState, self.roundAverage, self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.raiseAmount)
+        root = StepNode(None, 0, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.roundAverage, 
+                    self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
         for _ in range(50):
             tree.rollout(root)
         print(self.table.gameState)

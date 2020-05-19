@@ -1,6 +1,8 @@
 from Deck import Deck
 from Deck import Card
+import ratings
 import random
+import math
 import itertools
 
 class Node(object):
@@ -11,23 +13,23 @@ class Node(object):
         self.n = 0
         #self.visited = false
 
-    def isTerminal(self):
-        "Returns True if the node has no children"
-        return True  
+    #def isTerminal(self):
+    #    "Returns True if the node has no children"
+    #    return True  
 
-    def find_random_child(self):
-        "Random successor of this board state (for more efficient simulation)"
-        return None
+    #def find_random_child(self):
+    #    "Random successor of this board state (for more efficient simulation)"
+    #    return None
 
-    def find_children(self):
-        "All possible successors of this board state"
-        return set()    
+    #def find_children(self):
+    #    "All possible successors of this board state"
+    #    return set()    
 
-    def untried_actions(self):
-        return None
+    #def untried_actions(self):
+    #    return None
     
-    def randomChild(self):
-        return None
+    #def randomChild(self):
+    #    return None
         
 
 class Action():
@@ -49,16 +51,20 @@ class Action():
                 #POSSIBLE TODO: Make sure the probability of hand to show impacts the heuristic
                 #self.node.findBestHand(self.node.cardHistory)
 
-                if(self.node.level == 1):
-                    child = StepNode(node, self.node.level + 1, self.node.numPlayers, "TURN", new_deck, self.node.cardHistory, self.node.roundAverage)
-                elif(self.node.level == 3):
-                    child = StepNode(node,self.node.level + 1,self.node.numPlayers, "RIVER", new_deck, self.node.cardHistory, self.node.roundAverage)
-                elif(self.node.level == 5):
-                    child = StepNode(node,self.node.level + 1,self.node.numPlayers,"SHOWDOWN", new_deck, self.node.cardHistory, self.node.roundAverage)
+                if(self.node.level == 0):
+                    temp = "TURN"
+                elif(self.node.level == 1):
+                    temp = "RIVER"
+                elif(self.node.level == 2):
+                    temp = "SHOWDOWN"
+                else:
+                    temp = None
+                    raise ValueError("Node level out of bounds")
 
+                child = StepNode(self.node, self.node.level + 1, self.node.numPlayers, temp, new_deck, self.node.cardHistory, self.node.roundAverage)
                 child.cardHistory.append(new_card)
-
-                if(child.node.state == "TURN" or child.node.state == "RIVER"):
+                
+                if(child.state == "TURN" or child.state == "RIVER"):
                     child.currentBetAmount = self.node.currentBetAmount * 2
                     child.raiseAmount = self.node.raiseAmount * 2
                     if(self.action == "CALL"):
@@ -77,7 +83,8 @@ class StepNode(Node):
     """
     A node holding a state in the tree.
     """
-    def __init__(self, parent, level, numPlayers, state, deck, cardHistory, roundAverage, pot = None, gameBet = None, currentBetAmount = None , raiseAmount = None):
+    def __init__(self, parent, level, numPlayers, state, deck, cardHistory, roundAverage, 
+                pot = None, gameBet = None, currentBetAmount = None , raiseAmount = None):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0
@@ -90,7 +97,7 @@ class StepNode(Node):
         self.giveUp = False
         self.roundAverage = roundAverage
         self.pot = pot
-        self.gameBet = self.gameBet
+        self.gameBet = gameBet
         self.currentBetAmount = currentBetAmount
         self.raiseAmount = raiseAmount
     
@@ -106,7 +113,7 @@ class StepNode(Node):
         action = self.randomChild()
         return action.sample_state(self)
 
-    def findBestHand(self, cardList):
+    def findBestHand(self, cardList, returnRating = False):
         print(cardList)
         #cardList = self.flop + self.hand
         #PERGUNTAR À EVANS SE ESTE POSSIBLE HANDS É AS COMBINAÇÕES POSSIVEIS COM AS CARTAS QUE TENHO OU NÃO
@@ -120,6 +127,8 @@ class StepNode(Node):
                 rating = current
                 best = hand
         self.hand = best
+        if returnRating:
+            return rating
 
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)
@@ -226,15 +235,13 @@ class StepNode(Node):
 
     def getReward(self):
         if (self.state == "SHOWDOWN"):
-            return 100
-        else:
-            reward = -1
-            if True:
-                pass
-            return reward
+            key = self.findBestHand(self.cardHistory,True)
+            probValue = ratings.probs[key]
+            hrating = exp(4*ratings.heuristic[key]/28)
+            return 0.25 * probValue + 0.25 * hrating + 0.2 * self.pot + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
 
     def isTerminal(self):
-        if self.level == 6 or self.giveUp:
+        if self.level == 3 or self.giveUp:
             return True
         return False  
 

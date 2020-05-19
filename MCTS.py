@@ -74,8 +74,8 @@ class MCTS(object):
         "Returns the reward for a random simulation (to completion) of `node`"
         while True:
             if node.isTerminal():
-                cenas = node.getReward()
-                return cenas
+                reward = node.getReward()
+                return reward
             node = node.find_random_child()
 
     def backPropagate(self, path, reward):
