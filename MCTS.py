@@ -73,11 +73,14 @@ class MCTS(object):
 
     def simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"
+        i = 0
         while True:
             if node.isTerminal():
+                print(":3c")
                 reward = node.getReward()
                 return reward
             node = node.find_random_child()
+            i += 1
 
     def backPropagate(self, path, reward):
         "Send the reward back up to the ancestors of the leaf"

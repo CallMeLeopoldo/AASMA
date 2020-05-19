@@ -62,8 +62,10 @@ class Action():
                     temp = None
                     raise ValueError("Node level out of bounds")
 
-                child = StepNode(self.node, self.node.level + 1, self.node.numPlayers, temp, new_deck, self.node.cardHistory, self.node.roundAverage)
+                new_level = self.node.level + 1
+                child = StepNode(self.node, new_level, self.node.numPlayers, temp, new_deck, self.node.cardHistory, self.node.roundAverage)
                 child.cardHistory.append(new_card)
+                print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
                 
                 if(child.state == "TURN" or child.state == "RIVER"):
                     child.currentBetAmount = self.node.currentBetAmount * 2
@@ -84,6 +86,7 @@ class Action():
                 i += 1
                 children.append(child)
 
+            print(i)
             return children
         else:
             print("Action node is working in an empty deck")
@@ -255,7 +258,7 @@ class StepNode(Node):
             return 0.25 * probValue + 0.25 * hrating + 0.2 * self.pot + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
 
     def isTerminal(self):
-        if self.level == 3 or self.giveUp:
+        if self.level == 2 or self.giveUp:
             return True
         return False  
 
