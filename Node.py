@@ -259,8 +259,8 @@ class StepNode(Node):
         temp.sort(key=self.returnRank)
         i = 0
         seq = True
-        while i < len(temp):
-            if temp[i].getNumericalValue() != (temp[i+1].getNumericalValue() + 1):
+        while i < len(temp) - 1:
+            if temp[i].getNumericalValue()+1 != temp[i+1].getNumericalValue():
                 seq = False
                 break
             else:
