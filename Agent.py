@@ -29,6 +29,7 @@ class Agent:
         self.id = identifier
         self.money = Chips(5000)
         self.hand = []
+        self.handVal = 0
         self.cardHistory = []
         self.deck = Deck()
         self.currentBetAmount = 0
@@ -142,7 +143,7 @@ class Agent:
             if self.state == "TURN": level = 1
             if self.state == "RIVER": level = 2 
             tree = MCTS()
-            root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.roundAverage, 
+            root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, 
                         self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
             for _ in range(2):
                 tree.rollout(root)
@@ -187,6 +188,7 @@ class Agent:
                 rating = current
                 best = hand
         self.hand = best
+        self.handVal = rating
     
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)
