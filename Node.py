@@ -56,7 +56,7 @@ class Action():
                 child.pot = self.node.pot
 
                 
-                print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
+                #print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
                 if lst == None:
                     children.append(child)
                     return children
@@ -85,7 +85,7 @@ class Action():
                     new_level = self.node.level + 1
                     child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, new_deck, new_history, self.node.irlHand, self.node.roundAverage)
                     child.cardHistory.append(new_card)
-                    print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
+                    #print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
 
                     if(child.state == "TURN" or child.state == "RIVER"):
                         child.currentBetAmount = self.node.currentBetAmount * 2
@@ -113,9 +113,9 @@ class Action():
                         children.append(child)
                     else:
                         lst.append(child)
-                    print("this is my game bet " + str(child.gameBet))
+                    #print("this is my game bet " + str(child.gameBet))
 
-                print(i)
+                #print(i)
                 if lst == None:
                     return children
                 else:
@@ -152,7 +152,7 @@ class StepNode(Node):
         return card.getNumericalValue()
 
     def findBestHand(self, cardList, returnRating = False):
-        print(cardList)
+        #print(cardList)
         #cardList = self.flop + self.hand
         possible_hands = itertools.combinations(cardList,5)
         rating = 0
@@ -272,9 +272,9 @@ class StepNode(Node):
 
     def getReward(self):
         if (self.state == "SHOWDOWN" or self.giveUp):
-            print("this is the game bet in get reward: " + str(self.gameBet))
+            #print("this is the game bet in get reward: " + str(self.gameBet))
             key = self.findBestHand(self.cardHistory,True)
-            print("yo")
+            #print("yo")
             if (key == self.irlHand): probValue = 1
             else: probValue = ratings.probs[key]
             hrating = math.exp(4*ratings.heuristic[key]/28)
@@ -292,7 +292,7 @@ class StepNode(Node):
     def find_random_child(self):
         action = Action(self.randomChild(),self)
         lst = action.sample_state()
-        print("length i guess " + str(len(lst)))
+        #print("length i guess " + str(len(lst)))
         return random.choice(lst)
 
     def isTerminal(self):
@@ -307,7 +307,7 @@ class StepNode(Node):
         if self.isTerminal():
             return None  # If the game is finished then no moves can be made
         action = random.choice(self.untried_actions())   
-        print(action)        
+        #print(action)        
         return action 
 
     def __str__(self):

@@ -21,13 +21,13 @@ class MCTS(object):
 
     def rollout(self, node):
         path = self.select(node)
-        print(path)
+        #print(path)
         leaf = path[-1]
         self.expand(leaf)
         reward = self.simulate(leaf)
-        print(path)
-        print("this is reward")
-        print(reward)
+        #print(path)
+        #print("this is reward")
+        #print(reward)
         self.backPropagate(path, reward)
 
     def choose(self, node):
@@ -54,8 +54,8 @@ class MCTS(object):
                 # node is either unexplored or terminal
                 return path
             unexplored = self.children[node] - self.children.keys()
-            print("this is unexplored")
-            print(unexplored)
+            #print("this is unexplored")
+           # print(unexplored)
             if unexplored:
                 n = unexplored.pop()
                 path.append(n)
@@ -75,17 +75,17 @@ class MCTS(object):
         if node in self.children or node.isTerminal():
             return  # already expanded
         self.children[node] = node.find_children()
-        print(len(self.children[node]))
+        #print(len(self.children[node]))
 
     def simulate(self, node):
         "Returns the reward for a random simulation (to completion) of `node`"
         i = 0
-        print("simulation started")
+       # print("simulation started")
         while True:
             if node.isTerminal():
-                print(":3c " + str(node.state) + " " + str(node.level))
+                #print(":3c " + str(node.state) + " " + str(node.level))
                 reward = node.getReward()
-                print("this is reward value in simulate " + str(reward))
+               # print("this is reward value in simulate " + str(reward))
                 return reward
             node = node.find_random_child()
             i += 1
@@ -93,7 +93,7 @@ class MCTS(object):
     def backPropagate(self, path, reward):
         "Send the reward back up to the ancestors of the leaf"
         for node in reversed(path):
-            print("this is reward value in backpropagate " + str(reward))
+            #print("this is reward value in backpropagate " + str(reward))
             self.N[node] += 1
             self.Q[node] += reward
 

@@ -109,8 +109,8 @@ class Agent:
             self.deck.removeCard(card.getName())
 
     def showHand(self):
-        return self.rateHand(self.cardHistory)
-
+        self.findHand()
+        return self.handVal
     def receivePot(self, potAmount):
         self.money.collect(potAmount)
 
@@ -147,8 +147,8 @@ class Agent:
                         self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
             for _ in range(2):
                 tree.rollout(root)
-            print("------------------------------------------------ROLLOUT DONE-------------------------------------------")
-            print(self.table.gameState)
+            #print("------------------------------------------------ROLLOUT DONE-------------------------------------------")
+            #print(self.table.gameState)
             #print(root.isTerminal())
             action = tree.choose(root)
 
@@ -178,7 +178,7 @@ class Agent:
     def returnRank(self, card):
         return card.getNumericalValue()
 
-    def findHand(self):
+    def findHand(self, returnRating = False):
         possible_hands = itertools.combinations(self.cardHistory, 5)
         rating = 0
         best = None
@@ -189,7 +189,9 @@ class Agent:
                 best = hand
         self.hand = best
         self.handVal = rating
-    
+        if returnRating:
+            return rating
+
     def rateHand(self, hand):
         opt1 = self.checkRanks(hand)
         opt2 = self.checkSequence(hand)
