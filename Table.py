@@ -287,6 +287,7 @@ class Table:
             if len(self.agents) <= 1:
                 break
             self.gameRound()
+            print("we are ending the game at: " + str(self.gameState) + " with " + str(len(self.activeAgents)) + " active agents")
             #msg = ""
             for a in self.agents:
                 if a.getMoney() == 0:

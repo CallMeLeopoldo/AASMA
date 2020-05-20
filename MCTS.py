@@ -72,7 +72,7 @@ class MCTS(object):
 
     def expand(self, node):
         "Update the `children` dict with the children of `node`"
-        if node in self.children:
+        if node in self.children or node.isTerminal():
             return  # already expanded
         self.children[node] = node.find_children()
         print(len(self.children[node]))
