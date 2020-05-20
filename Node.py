@@ -49,7 +49,7 @@ class Action():
             if self.node.level == 2:
                 new_level = self.node.level + 1
                 temp = "SHOWDOWN"
-                child = StepNode(self.node, new_level, self.node.numPlayers, temp, self.node.deck, self.node.cardHistory, self.node.roundAverage)
+                child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, self.node.deck, self.node.cardHistory, self.node.roundAverage)
                 child.currentBetAmount = self.node.currentBetAmount
                 child.raiseAmount = self.node.raiseAmount
                 child.gameBet = self.node.gameBet
@@ -83,7 +83,7 @@ class Action():
                         raise ValueError("Node level out of bounds")
 
                     new_level = self.node.level + 1
-                    child = StepNode(self.node, new_level, self.node.numPlayers, temp, new_deck, new_history, self.node.roundAverage)
+                    child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, new_deck, new_history, self.node.roundAverage)
                     child.cardHistory.append(new_card)
                     print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
 
@@ -127,12 +127,13 @@ class StepNode(Node):
     """
     A node holding a state in the tree.
     """
-    def __init__(self, parent, level, numPlayers, state, deck, cardHistory, roundAverage, 
+    def __init__(self, parent, level, action, numPlayers, state, deck, cardHistory, roundAverage, 
                 pot = 0, gameBet = 0, currentBetAmount = 0, raiseAmount = 0):
         super(StepNode, self).__init__(parent)
         self.state = state
         self.reward = 0
         self.level = level
+        self.creationAction = action
         self.numPlayers = numPlayers
         self.deck = deck
         self.hand = None

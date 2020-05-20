@@ -139,23 +139,24 @@ class Agent:
 
         if self.state != "PRE-FLOP":
             tree = MCTS()
-            root = StepNode(None, 0, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.roundAverage, 
+            root = StepNode(None, 0, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.roundAverage, 
                         self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
-            for _ in range(50):
+            for _ in range(2):
                 tree.rollout(root)
+            print("------------------------------------------------ROLLOUT DONE-------------------------------------------")
             print(self.table.gameState)
             #print(root.isTerminal())
             action = tree.choose(root)
 
-            if action.name == "CALL":
+            if action.creationAction == "CALL":
                 self.money.bet(betAmount)
                 return "CALL"
-            elif action.name == "RAISE":
+            elif action.creationAction == "RAISE":
                 self.money.bet(betAmount + raiseAmount)
                 return "RAISE"
-            elif action.name == "FOLD":
+            elif action.creationAction == "FOLD":
                 return "FOLD"
-            elif action.name == "CHECK":
+            elif action.creationAction == "CHECK":
                 return "CHECK"
         else:
             self.money.bet(betAmount)
