@@ -183,6 +183,7 @@ class Agent:
         rating = 0
         best = None
         for hand in possible_hands:
+            for card in hand:
             current = self.rateHand(list(hand))
             if current > rating:
                 rating = current
@@ -196,6 +197,7 @@ class Agent:
         opt1 = self.checkRanks(hand)
         opt2 = self.checkSequence(hand)
         opt3 = self.checkSuits(hand)
+        
         #if its a high card
         if opt1 == None and opt2 == None and opt3 == None:
             temp = hand
@@ -229,7 +231,7 @@ class Agent:
         repeats = []
         times = []
         for card in hand:
-            if card.getValue() in repeats:
+            if card.getNumericalValue() in repeats:
                 times[repeats.index(card.getNumericalValue())] += 1
             else:
                 repeats.append(card.getNumericalValue())
