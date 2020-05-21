@@ -37,9 +37,11 @@ class Agent:
         self.state = None
         self.roundHistory = []
         self.roundAverage = 0
-        #self.tree_policy = tree_policy
-        #self.default_policy = default_policy
-        #self.backup = backup
+        self.profile = self.setProfile()
+        self.playRisk = 0
+        self.opponentPlayRecord = []
+        print(self.getProfile())
+
     
     def getId(self):
         return self.id
@@ -47,15 +49,6 @@ class Agent:
 #################################################
 ####            DECISION-MAKING             #####
 #################################################
-
-#    def Monte_Carlo_Search(self):
-#        mcts = MCTS(self.tree_policy, self.default_policy, self.backup)
-#
-#        root = Node(None, self.ownDeck, self.hand, self.tableGetState())
-#        root.n += 1
-#        root.sample_state()
-#
-#        action = mcts(root, self.ownDeck, self.hand)
     
     def randomChoice(self, canCheck, canRaise):
         actions = list(Action)
@@ -71,8 +64,19 @@ class Agent:
 #################################################
 
     def agentReactiveDecision(self):
-        if(table.pot >= 10*table.betAmount):
-            return "FOLD"
+
+        if(self.getProfile() == "Risky"):
+            if(self.risk > 2):
+                return "FOLD"
+        elif(self.getProfile() == "Safe"):
+            if(self.risk > 0.6):
+                return "FOLD"
+        elif(self.getProfile() == "Random"):
+            if(self.risk > 1):
+                return "FOLD"
+        return
+
+
 
 
 
@@ -92,6 +96,11 @@ class Agent:
         canRaise = msg[4]
         actions = msg[5]
         return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise, actions), self.id]
+
+    def receiveWarn(self, flag, msg):
+        if(flag == "warn"):
+            self.opponentPlayRecord.append(msg[1])
+            del self.opponentPlayRecord[ : (-3*len(self.table.agents))]
 
     def sendMessage(self,msg):
         return [msg, self.id]
@@ -113,6 +122,16 @@ class Agent:
 ####            AUXILIARY?               ########
 #################################################
     
+    def setProfile(self):
+        profile = random.randint(1,3)
+        if profile == 1:
+            return "Risky"
+        elif profile == 2:
+            return "Safe"
+        elif profile == 3:
+            return "Random"
+        return
+    
     def calculateRoundAverage(self, counter):
         self.roundHistory.append(counter)
         self.roundAverage = sum(self.roundHistory)/len(self.roundHistory)
@@ -130,31 +149,75 @@ class Agent:
         self.money.bet(amount)
         self.resetRoundBet()
     
+    def riskCalculation(self):
+        actionF = 0
+        raiseF = self.opponentPlayRecord.count("RAISE")
+        callF = self.opponentPlayRecord.count("CALL")
+        foldF = self.opponentPlayRecord.count("FOLD")
+        checkF = self.opponentPlayRecord.count("CHECK")
+
+        if raiseF != 0:
+            raiseF = raiseF/len(self.opponentPlayRecord)
+        
+        if callF != 0:
+            callF = callF/len(self.opponentPlayRecord)
+
+        if checkF != 0:
+            checkF = checkF/len(self.opponentPlayRecord)
+
+        if foldF != 0:
+            foldF = foldF/len(self.opponentPlayRecord)
+
+        actionF = 0.1*foldF + 0.1*checkF + 0.3*callF + 0.5*raiseF
+
+        moneyF = self.checkTheirChips()/(self.checkTheirChips() + self.checkMyChips())
+
+        self.risk = (actionF * 0.4 + moneyF * 0.6)/(actionF + moneyF)
+        print(self.risk)
+        
+    
     def makeBet(self, betAmount, raiseAmount, canCheck, canRaise, actions):
         #action = self.randomChoice(canCheck, canRaise)
+
+        self.riskCalculation()
 
         if self.state != "PRE-FLOP":
             level = 0
             if self.state == "TURN": level = 1
-            if self.state == "RIVER": level = 2 
-            tree = MCTS()
-            root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions,
-                        self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
-            for _ in range(20):
-                tree.rollout(root)
+            if self.state == "RIVER": level = 2
 
-            action = tree.choose(root, canCheck, canRaise)
+            goReactive = self.agentReactiveDecision()
+            if(goReactive is not None):
+            #RETURN GOREACTIVE
+                if goReactive == "CALL":
+                    self.money.bet(betAmount)
+                    return "CALL"
+                elif goReactive == "RAISE":
+                    self.money.bet(betAmount + raiseAmount)
+                    return "RAISE"
+                elif goReactive == "FOLD":
+                    return "FOLD"
+                elif goReactive == "CHECK":
+                    return "CHECK"                
+            else:
+                tree = MCTS()
+                root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions, self.profile,
+                            self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
+                for _ in range(20):
+                    tree.rollout(root)
 
-            if action.creationAction == "CALL":
-                self.money.bet(betAmount)
-                return "CALL"
-            elif action.creationAction == "RAISE":
-                self.money.bet(betAmount + raiseAmount)
-                return "RAISE"
-            elif action.creationAction == "FOLD":
-                return "FOLD"
-            elif action.creationAction == "CHECK":
-                return "CHECK"
+                action = tree.choose(root, canCheck, canRaise)
+
+                if action.creationAction == "CALL":
+                    self.money.bet(betAmount)
+                    return "CALL"
+                elif action.creationAction == "RAISE":
+                    self.money.bet(betAmount + raiseAmount)
+                    return "RAISE"
+                elif action.creationAction == "FOLD":
+                    return "FOLD"
+                elif action.creationAction == "CHECK":
+                    return "CHECK"
         else:
             self.money.bet(betAmount)
             return "CALL"
@@ -310,24 +373,30 @@ class Agent:
     def checkMyChips(self):
         return self.money.getCurrent()
     
-    def checkTheirChips(self, id):
-        chips = []
-        for agent in table.agents:
-            if id == agent.id:
-                return agent.money.getCurrent()
-        return
+    def checkTheirChips(self):
+        chips = 0
+        for agent in self.table.agents:
+            chips += agent.money.getCurrent()
+        return chips
     
     def checkPot(self):
         return table.pot
 
     def checkBlind(self):
         return table.betAmount
-#
-#    def checkPlayRecords():
-#        pass
-#
-#    def checkProfiles():
-#        pass
-#
-#    def checkEnvironment():
-#        pass
+
+    def checkPlayRecords(self):
+        return self.opponentPlayRecord
+
+    def getProfile(self):
+        return self.profile
+
+    def checkProfiles(self):
+        opponentsProfiles = []
+        for a in self.table.agents:
+            opponentsProfiles.append(a.getProfile())
+        return opponentsProfiles
+
+    def checkEnvironment(self):
+        return self.table.environment
+        pass

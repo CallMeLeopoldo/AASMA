@@ -4,7 +4,7 @@ from Agent import Agent
 
 class Table:
     
-    def __init__(self, numRounds, numAgents, bigBlind):
+    def __init__(self, environment, numRounds, numAgents, bigBlind):
         self.numRounds = numRounds
         self.agents = []
         self.activeAgents = []
@@ -13,6 +13,7 @@ class Table:
         self.tableCards = []
         self.discardPile = []
         self.gameState = None
+        self.environment = environment
 
         self.bigBlind = bigBlind
         self.smallBlind = round(bigBlind/2)
@@ -136,6 +137,7 @@ class Table:
             if(len(toRemove) == len(self.activeAgents) - 1):
                 break
             if "RAISE" == msg[0]:
+                print("WAIT A SECOND")
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)
                 self.canCheck = False
@@ -145,6 +147,10 @@ class Table:
                 self.canRaise = True
             elif "FOLD" == msg[0]:
                 toRemove.append(self.activeAgents[self.turn])
+            
+            #WARN OTHER AGENTS
+            WOA = self.sendWarn("warn", [self.turn, msg[0]])
+
             nAgents -= 1
             
         
@@ -196,6 +202,11 @@ class Table:
 
     def sendMessage(self, agent, msg):
         return self.activeAgents[agent].receiveMessage(msg)
+
+    def sendWarn(self, flag, msg):
+        for a in self.activeAgents:
+            if(a.id != self.turn):
+                a.receiveWarn(flag,msg)
     
     #def receiveMessage(self, agent, msg):
     #    return msg
@@ -343,8 +354,8 @@ class Table:
             print("we are ending the game at: " + str(self.gameState) + " with " + str(len(self.activeAgents)) + " active agents")
             #msg = ""
             for a in self.agents:
-                if a.getMoney() == 0:
-                    self.agents.pop(a)
+                if a.getMoney() <= 0:
+                    self.agents.pop(self.agents.index(a))
             #    else:
             #        msg = msg + str(a.id) + "; "
             #print("Agents currently playing: " + msg)
@@ -354,8 +365,9 @@ class Table:
 
 
 line = sys.stdin.readline()
-numRounds = int(line.split(' ')[0])
-numAgents = int(line.split(' ')[1])
-bigBlind = int(line.split(' ')[2])
-table = Table(numRounds, numAgents, bigBlind)
+environment = str(line.split(' ')[0])
+numRounds = int(line.split(' ')[1])
+numAgents = int(line.split(' ')[2])
+bigBlind = int(line.split(' ')[3])
+table = Table(environment, numRounds, numAgents, bigBlind)
 table.game(numRounds)
