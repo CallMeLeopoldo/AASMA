@@ -49,7 +49,7 @@ class Action():
             if self.node.level == 2:
                 new_level = self.node.level + 1
                 temp = "SHOWDOWN"
-                child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, self.node.deck, self.node.cardHistory, self.node.irlHand, self.node.roundAverage)
+                child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, self.node.deck, self.node.cardHistory, self.node.irlHand, self.node.roundAverage, self.node.actions)
                 child.currentBetAmount = self.node.currentBetAmount
                 child.raiseAmount = self.node.raiseAmount
                 child.gameBet = self.node.gameBet
@@ -83,9 +83,12 @@ class Action():
                         raise ValueError("Node level out of bounds")
 
                     new_level = self.node.level + 1
-                    child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, new_deck, new_history, self.node.irlHand, self.node.roundAverage)
+                    child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, new_deck, new_history, self.node.irlHand, self.node.roundAverage, self.node.actions)
                     child.cardHistory.append(new_card)
                     #print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
+                    
+                    if(self.node.state == "TURN"):
+                        child.actions = ["CALL", "FOLD", "RAISE", "CHECK"]
 
                     if(child.state == "TURN" or child.state == "RIVER"):
                         child.currentBetAmount = self.node.currentBetAmount * 2
@@ -127,7 +130,7 @@ class StepNode(Node):
     """
     A node holding a state in the tree.
     """
-    def __init__(self, parent, level, action, numPlayers, state, deck, cardHistory, irlHand, roundAverage, 
+    def __init__(self, parent, level, action, numPlayers, state, deck, cardHistory, irlHand, roundAverage, actions, 
                 pot = 0, gameBet = 0, currentBetAmount = 0, raiseAmount = 0):
         super(StepNode, self).__init__(parent)
         self.state = state
@@ -146,6 +149,7 @@ class StepNode(Node):
         self.gameBet = gameBet
         self.currentBetAmount = currentBetAmount
         self.raiseAmount = raiseAmount
+        self.actions = actions
     
 
     def returnRank(self, card):
@@ -278,7 +282,17 @@ class StepNode(Node):
             if (key == self.irlHand): probValue = 1
             else: probValue = ratings.probs[key]
             hrating = math.exp(4*ratings.heuristic[key]/28)
-            return 0.25 * probValue + 0.25 * hrating + 0.2 * self.pot + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
+            return self.getHeuristics("Safe", probValue, hrating)
+
+    def getHeuristics(self, hOption, probability, hrating):
+        if hOption == "Risky":
+            return (1/probability) * 0.4 + hrating*0.4 + 0.1*self.pot + 0.1*(1/self.gameBet)
+        
+        elif hOption == "Safe":
+            return probability * 0.4 + hrating*0.3 + 0.2*self.pot + 0.1*(1/self.gameBet)
+
+        else:
+            return 0.25 * probability + 0.25 * hrating + 0.2 * self.pot + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
 
     def find_children(self):
         children = []
@@ -301,7 +315,7 @@ class StepNode(Node):
         return False 
 
     def untried_actions(self):
-        return ["CALL", "RAISE", "FOLD", "CHECK"]
+        return self.actions
 
     def randomChild(self):
         if self.isTerminal():

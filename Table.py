@@ -107,6 +107,13 @@ class Table:
         self.raiseAmount = self.raiseAmount * 2
         self.betAmount = self.betAmount * 2 
 
+    def whatToDo(self):
+        actions = ["CALL","FOLD"]
+        if self.canCheck:
+            actions.append("CHECK")
+        if self.canRaise:
+            actions.append("RAISE")
+        return actions
 
     def bettingRound(self, state, counter):
 
@@ -120,11 +127,14 @@ class Table:
 
         while nAgents > 0:
             self.passTurn()
+            actions = self.whatToDo()
             print("VALUE OF CANCHECK: " + str(self.canCheck))
             print("VALUE OF CANRAISE: " + str(self.canRaise)) 
-            msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise])
+            msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise, actions])
             #msg = self.receiveMessage(self.turn)
             print("SO THIS IS WHAT THE RETARDED AGENT NUMBER " + str(msg[1]) + " DID " + msg[0])
+            if(len(toRemove) == len(self.activeAgents) - 1):
+                break
             if "RAISE" == msg[0]:
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)
@@ -226,7 +236,7 @@ class Table:
             return
         print(self.gameState)
         for a in self.agents:
-            print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
+            print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()) + "HAND RATING: " + str(a.findHand(True)) )
             print("HAND:")
             for c in a.cardHistory:
                 print("CARD NUMBER: " + c.getName())
@@ -245,12 +255,13 @@ class Table:
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
         for a in self.agents:
-            print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
+            print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()) + "HAND RATING: " + str(a.findHand(True)) )
     
         # flop: betting round
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
+                print("WINNING AGENT: " + str(self.activeAgents[0].id))
             return
 
         ################ TURN PHASE ################
@@ -272,6 +283,7 @@ class Table:
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
+                print("WINNING AGENT: " + str(self.activeAgents[0].id))
             return
 
         ################ RIVER PHASE ################
@@ -292,6 +304,7 @@ class Table:
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
+                print("WINNING AGENT: " + str(self.activeAgents[0].id))
             return
         ################ SHOWDOWN PHASE ################
         self.gameState = "SHOWDOWN"

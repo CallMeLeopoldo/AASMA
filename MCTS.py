@@ -43,22 +43,9 @@ class MCTS(object):
             if self.N[n] == 0:
                 return float("-inf")  # avoid unseen moves
             return self.Q[n] / self.N[n]  # average reward
-        
-        sorted(self.children[node], key=score)
-        best = 0
-        while True:
-            option = self.children[node][best]
-            print("---------------------------------------")
-            print(option.creationAction)
-            print("---------------------------------------")
-            if not canCheck and option.creationAction == "CHECK":
-                best += 1
-            elif not canRaise and option.creationAction == "RAISE":
-                best +=1
-            else:
-                return option
 
-        #return max(self.children[node], key=score)
+        #print(self.Q[max(self.children[node], key=score)])
+        return max(self.children[node], key=score)
 
     def select(self, node):
         "Find an unexplored descendent of `node`"
@@ -76,14 +63,6 @@ class MCTS(object):
                 path.append(n)
                 return path
             node = self._uct_select(node)  # descend a layer deeper
-
-    #def simulation(self, state_node):
-    #    test_node = state_node
-    #    while !(test_node.level == 6 or (test_node.isInstance(ActionNode) and test_node.action = "FOLD")):
-    #        test_node.sample_state()
-    #        new_child = state_node._randomChild()
-    #        test_node = new_child
-    #    return test_node
 
     def expand(self, node):
         "Update the `children` dict with the children of `node`"
@@ -127,9 +106,3 @@ class MCTS(object):
             )
 
         return max(self.children[node], key=uct)
-
-
-
-        #ACTIONNODE -> ACTIONNODE
-
-        #STATENODE -> ACTIONNODE -> STATENODE

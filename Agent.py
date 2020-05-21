@@ -71,7 +71,10 @@ class Agent:
 #################################################
 
     def agentReactiveDecision(self):
-        pass
+        if(table.pot >= 10*table.betAmount):
+            return "FOLD"
+
+
 
 #################################################
 ####            COMMUNICATION               #####
@@ -80,9 +83,6 @@ class Agent:
     def tableGetState(self):
         pass
         #communicate w table to get which state the game is in, i.e flop, turn, river, etc
-    
-    def updateBeliefs(self):
-        pass
 
     def receiveMessage(self, msg):
         self.state = msg[0]
@@ -90,18 +90,12 @@ class Agent:
         self.currentRaiseAmount = msg[2]
         canCheck = msg[3]
         canRaise = msg[4]
-        return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise), self.id]
+        actions = msg[5]
+        return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise, actions), self.id]
 
     def sendMessage(self,msg):
         return [msg, self.id]
 
-        #sendMessage(Chips, "Fold")
-        #sendMessage(Card)
-        #sendMessage(2 Cards)
-
-        #receiveMessage(Chips, "Fold")
-        #receiveMessage(Card)
-        #receiveMessage(2 Cards)
     
     def receiveCards(self, cardList):
         for card in cardList:
@@ -111,6 +105,7 @@ class Agent:
     def showHand(self):
         self.findHand()
         return self.handVal
+        
     def receivePot(self, potAmount):
         self.money.collect(potAmount)
 
@@ -135,7 +130,7 @@ class Agent:
         self.money.bet(amount)
         self.resetRoundBet()
     
-    def makeBet(self, betAmount, raiseAmount, canCheck, canRaise):
+    def makeBet(self, betAmount, raiseAmount, canCheck, canRaise, actions):
         #action = self.randomChoice(canCheck, canRaise)
 
         if self.state != "PRE-FLOP":
@@ -143,13 +138,11 @@ class Agent:
             if self.state == "TURN": level = 1
             if self.state == "RIVER": level = 2 
             tree = MCTS()
-            root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, 
+            root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions,
                         self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
-            for _ in range(2):
+            for _ in range(20):
                 tree.rollout(root)
-            #print("------------------------------------------------ROLLOUT DONE-------------------------------------------")
-            #print(self.table.gameState)
-            #print(root.isTerminal())
+
             action = tree.choose(root, canCheck, canRaise)
 
             if action.creationAction == "CALL":
@@ -302,32 +295,33 @@ class Agent:
 ####            SENSORS                     #####
 #################################################
 
-#    def checkMyCards(self):
-#        return self.cards
-#
-#    def checkMyDeck(self):
-#        return self.deck
-#
-#    def checkTableCards():
-#        return table.cards
-#    
-#    def checkTurn():
-#        return table.turn
-#    
-#    def checkMyChips(self):
-#        return self.money.getCurrent()
-#    
-#    def checkTheirChips(self):
-#        chips = []
-#        for agent in table.agents:
-#            chips.add(agent.cards)
-#        return chips
-#    
-#    def checkPot():
-#        return table.pot
-#
-#    def checkBlind():
-#        return table.blind
+    def checkMyCards(self):
+        return self.hand
+
+    def checkMyDeck(self):
+        return self.deck
+
+    def checkTableCards(self):
+        return table.tableCards
+    
+    def checkTurn(self):
+        return table.turn
+    
+    def checkMyChips(self):
+        return self.money.getCurrent()
+    
+    def checkTheirChips(self, id):
+        chips = []
+        for agent in table.agents:
+            if id == agent.id:
+                return agent.money.getCurrent()
+        return
+    
+    def checkPot(self):
+        return table.pot
+
+    def checkBlind(self):
+        return table.betAmount
 #
 #    def checkPlayRecords():
 #        pass
