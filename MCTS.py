@@ -43,17 +43,19 @@ class MCTS(object):
             if self.N[n] == 0:
                 return float("-inf")  # avoid unseen moves
             return self.Q[n] / self.N[n]  # average reward
-
-        copied = copy.deepcopy(self.children[node])
         
+        sorted(self.children[node], key=score)
+        best = 0
         while True:
-            option = max(copied, key=score)
+            option = self.children[node][best]
+            print("---------------------------------------")
+            print(option.creationAction)
+            print("---------------------------------------")
             if not canCheck and option.creationAction == "CHECK":
-                copied.pop()
+                best += 1
             elif not canRaise and option.creationAction == "RAISE":
-                copied.pop()
+                best +=1
             else:
-                del copied
                 return option
 
         #return max(self.children[node], key=score)
