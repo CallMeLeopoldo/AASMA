@@ -197,7 +197,6 @@ class Table:
     def gameRound(self):
         
         ################ PRE GAME PHASE ################
-        #print("------------PRE-GAME PHASE------------")
         self.turn = self.dealer
 
         # pay small blind and big blind
@@ -217,7 +216,7 @@ class Table:
             for c in a.cardHistory:
                 print("CARD NUMBER: " + c.getName())
         
-        #print("------------PRE-FLOP PHASE------------")
+        ################ PRE FLOP PHASE ################
         self.gameState = "PRE-FLOP"
 
         # pre flop: betting round
@@ -231,8 +230,10 @@ class Table:
             print("HAND:")
             for c in a.cardHistory:
                 print("CARD NUMBER: " + c.getName())
+
         ################ FLOP PHASE ################
-        #print("------------FLOP PHASE------------")
+        self.gameState = "FLOP"
+
         # discard card
         self.discardCard()
 
@@ -245,15 +246,16 @@ class Table:
             print("CARD NUMBER: " + c.getName())
         for a in self.agents:
             print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
-
-        self.gameState = "FLOP"
+    
         # flop: betting round
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
+
         ################ TURN PHASE ################
-        #print("------------TURN PHASE------------")
+        self.gameState = "TURN"
+
         # turn: double bet ammount and raise ammount
         self.doubleAmounts()
 
@@ -265,7 +267,7 @@ class Table:
             print("CARD NUMBER: " + c.getName())
         for a in self.agents:
             print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()) + "HAND RATING: " + str(a.findHand(True)) )
-        self.gameState = "TURN"
+        
         # turn: betting round
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
@@ -273,7 +275,7 @@ class Table:
             return
 
         ################ RIVER PHASE ################
-        #print("------------RIVER PHASE------------")
+        self.gameState = "RIVER"
         # river: double bet ammount and raise ammount
         self.doubleAmounts()
 
@@ -285,15 +287,15 @@ class Table:
             print("CARD NUMBER: " + c.getName())
         for a in self.agents:
             print( "AGENT: " + str(a.id) + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()) + "HAND RATING: " + str(a.findHand(True)))
-        self.gameState = "RIVER"
+        
         # river: betting round
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
             return
         ################ SHOWDOWN PHASE ################
-        
         self.gameState = "SHOWDOWN"
+        
         best = []
         cardRank = 0
         print(self.gameState)
@@ -312,6 +314,7 @@ class Table:
         
         for a in best:
             a.receivePot(self.pot/len(best))
+            print("WINNING AGENT: " + str(a.id))
 
         return
     
@@ -325,8 +328,6 @@ class Table:
                 break
             self.gameRound()
             print("we are ending the game at: " + str(self.gameState) + " with " + str(len(self.activeAgents)) + " active agents")
-            for a in self.activeAgents:
-                print("WINNING AGENT: " + str(a.id))
             #msg = ""
             for a in self.agents:
                 if a.getMoney() == 0:
