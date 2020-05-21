@@ -119,9 +119,12 @@ class Table:
         toRemove = []
 
         while nAgents > 0:
-            self.passTurn() 
+            self.passTurn()
+            print("VALUE OF CANCHECK: " + str(self.canCheck))
+            print("VALUE OF CANRAISE: " + str(self.canRaise)) 
             msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise])
             #msg = self.receiveMessage(self.turn)
+            print("SO THIS IS WHAT THE RETARDED AGENT NUMBER " + str(msg[1]) + " DID " + msg[0])
             if "RAISE" == msg[0]:
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)

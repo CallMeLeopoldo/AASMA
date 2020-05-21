@@ -2,6 +2,7 @@ import random
 import utils
 import math
 import Agent
+import copy
 from Deck import Deck
 from Deck import Card
 from collections import defaultdict
@@ -30,7 +31,7 @@ class MCTS(object):
         #print(reward)
         self.backPropagate(path, reward)
 
-    def choose(self, node):
+    def choose(self, node, canCheck, canRaise):
         "Choose the best successor of node. (Choose a move in the game)"
         if node.isTerminal():
             raise RuntimeError(f"choose called on terminal node {node}")
@@ -43,7 +44,19 @@ class MCTS(object):
                 return float("-inf")  # avoid unseen moves
             return self.Q[n] / self.N[n]  # average reward
 
-        return max(self.children[node], key=score)
+        copied = copy.deepcopy(self.children[node])
+        
+        while True:
+            option = max(copied, key=score)
+            if not canCheck and option.creationAction == "CHECK":
+                copied.pop()
+            elif not canRaise and option.creationAction == "RAISE":
+                copied.pop()
+            else:
+                del copied
+                return option
+
+        #return max(self.children[node], key=score)
 
     def select(self, node):
         "Find an unexplored descendent of `node`"

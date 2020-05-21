@@ -150,7 +150,7 @@ class Agent:
             #print("------------------------------------------------ROLLOUT DONE-------------------------------------------")
             #print(self.table.gameState)
             #print(root.isTerminal())
-            action = tree.choose(root)
+            action = tree.choose(root, canCheck, canRaise)
 
             if action.creationAction == "CALL":
                 self.money.bet(betAmount)
@@ -183,7 +183,6 @@ class Agent:
         rating = 0
         best = None
         for hand in possible_hands:
-            for card in hand:
             current = self.rateHand(list(hand))
             if current > rating:
                 rating = current
@@ -248,7 +247,8 @@ class Agent:
             #two pair
             else:
                 firstRank = repeats[times.index(2)]
-                times.pop(firstRank)
+                index = times.index(2)
+                times.pop(index)
                 secondRank = repeats[times.index(2)]
                 if firstRank > secondRank:
                     return 27 + (firstRank -2)
