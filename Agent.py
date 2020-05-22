@@ -44,7 +44,7 @@ class Agent:
         self.profile = self.setProfile()
         self.playRisk = 0
         self.opponentPlayRecord = []
-        print(self.getProfile())
+        #print(self.getProfile())
 
     
     def getId(self):
@@ -183,7 +183,7 @@ class Agent:
         moneyF = self.checkTheirChips()/(self.checkTheirChips() + self.checkMyChips())
 
         self.risk = (actionF * 0.4 + moneyF * 0.6)/(actionF + moneyF)
-        print(self.risk)
+        #print(self.risk)
         
     
     #def makeBet(self, betAmount, raiseAmount, canCheck, canRaise, actions):
