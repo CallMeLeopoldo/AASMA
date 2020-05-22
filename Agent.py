@@ -4,6 +4,7 @@ from Chips import Chips
 from Deck import Deck
 from MCTS import MCTS
 from Node import StepNode
+from GameState import GameState
 import utils
 import random
 import itertools
@@ -18,10 +19,9 @@ class Action(Enum):
     #PAYBLIND = "pay blind"
 
 
-
 class Agent:
     #desire = Desire.CALL
-    action = None
+    action = None   #TODO: check if this should be here 
     #plan = Queue().queue 
 
     def __init__(self, identifier, table):
@@ -32,11 +32,15 @@ class Agent:
         self.handVal = 0
         self.cardHistory = []
         self.deck = Deck()
-        self.currentBetAmount = 0
-        self.currentRaiseAmount = 0
-        self.state = None
+        
+        #self.currentBetAmount = 0
+        #self.currentRaiseAmount = 0
+        #self.state = None
         self.roundHistory = []
         self.roundAverage = 0
+
+        self.gameState = GameState()
+        
         self.profile = self.setProfile()
         self.playRisk = 0
         self.opponentPlayRecord = []
@@ -87,15 +91,19 @@ class Agent:
     def tableGetState(self):
         pass
         #communicate w table to get which state the game is in, i.e flop, turn, river, etc
+    
+    def updateGameState(self, other):
+        self.gameState.updateGameState(other)
 
-    def receiveMessage(self, msg):
-        self.state = msg[0]
-        self.currentBetAmount = msg[1]
-        self.currentRaiseAmount = msg[2]
-        canCheck = msg[3]
-        canRaise = msg[4]
-        actions = msg[5]
-        return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise, actions), self.id]
+    def receiveMessage(self):
+        #self.state = msg[0]
+        #self.currentBetAmount = msg[1]
+        #self.currentRaiseAmount = msg[2]
+        #canCheck = msg[3]
+        #canRaise = msg[4]
+        #actions = msg[5]
+        #return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise, actions), self.id]
+        return [self.makeBet(), self.id]
 
     def receiveWarn(self, flag, msg):
         if(flag == "warn"):
@@ -133,6 +141,8 @@ class Agent:
         return
     
     def calculateRoundAverage(self, counter):
+        #self.gameState.incrementRoundHistory(counter)
+        #self.gameState.calculateRoundAverage()
         self.roundHistory.append(counter)
         self.roundAverage = sum(self.roundHistory)/len(self.roundHistory)
     
@@ -176,15 +186,25 @@ class Agent:
         print(self.risk)
         
     
-    def makeBet(self, betAmount, raiseAmount, canCheck, canRaise, actions):
+    #def makeBet(self, betAmount, raiseAmount, canCheck, canRaise, actions):
+    def makeBet(self):                                                  # TODO fix this
         #action = self.randomChoice(canCheck, canRaise)
+
+        betAmount = self.gameState.getBetAmount()
+        raiseAmount = self.gameState.getRaiseAmount()
+        canCheck = self.gameState.getCanCheck()
+        canRaise = self.gameState.getCanRaise()
+        actions = self.gameState.getActions()
+        state = self.gameState.getSate()
+        #roundAvg = self.gameState.getRoundAverage()
+        roundAvg = self.roundAverage
 
         self.riskCalculation()
 
-        if self.state != "PRE-FLOP":
+        if state != "PRE-FLOP":
             level = 0
-            if self.state == "TURN": level = 1
-            if self.state == "RIVER": level = 2
+            if state == "TURN": level = 1
+            if state == "RIVER": level = 2
 
             goReactive = self.agentReactiveDecision()
             if(goReactive is not None):
@@ -201,8 +221,10 @@ class Agent:
                     return "CHECK"                
             else:
                 tree = MCTS()
-                root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions, self.profile,
-                            self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
+                #root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions, self.profile,
+                #            self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
+                root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile,
+                            self.table.pot, self.money.getGameBet(), betAmount, raiseAmount)
                 for _ in range(20):
                     tree.rollout(root)
 

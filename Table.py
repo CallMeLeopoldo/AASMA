@@ -1,6 +1,7 @@
 import sys
 from Deck import Deck
 from Agent import Agent
+from GameState import GameState
 
 class Table:
     
@@ -12,6 +13,8 @@ class Table:
         self.pot = 0
         self.tableCards = []
         self.discardPile = []
+
+        self.gameStateClass = GameState()
         self.gameState = None
         self.environment = environment
 
@@ -130,8 +133,12 @@ class Table:
             self.passTurn()
             actions = self.whatToDo()
             print("VALUE OF CANCHECK: " + str(self.canCheck))
-            print("VALUE OF CANRAISE: " + str(self.canRaise)) 
-            msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise, actions])
+            print("VALUE OF CANRAISE: " + str(self.canRaise))
+
+            self.updateGameState(state, actions)
+
+            #msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise, actions])
+            msg = self.sendMessage(self.turn)
             #msg = self.receiveMessage(self.turn)
             print("SO THIS IS WHAT THE RETARDED AGENT NUMBER " + str(msg[1]) + " DID " + msg[0])
             if(len(toRemove) == len(self.activeAgents) - 1):
@@ -200,8 +207,19 @@ class Table:
     ####            COMMUNICATION               #####
     #################################################
 
-    def sendMessage(self, agent, msg):
-        return self.activeAgents[agent].receiveMessage(msg)
+    def updateGameState(self, state, actions):
+        self.gameStateClass.setBetAmount(self.betAmount)
+        self.gameStateClass.setRaiseAmount(self.raiseAmount)
+        self.gameStateClass.setState(state)
+        #self.gameState.setRoundHistory(other.getRoundHistory())
+        #self.gameState.setRoundAverage(other.getRoundAverage())
+        self.gameStateClass.setCanCheck(self.canCheck)
+        self.gameStateClass.setCanRaise(self.canRaise)
+        self.gameStateClass.setActions(actions)
+
+    def sendMessage(self, agent):
+        self.activeAgents[agent].updateGameState(self.gameStateClass)
+        return self.activeAgents[agent].receiveMessage()
 
     def sendWarn(self, flag, msg):
         for a in self.activeAgents:
