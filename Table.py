@@ -272,6 +272,9 @@ class Table:
             for c in a.cardHistory:
                 print("CARD NUMBER: " + c.getName())
 
+        for a in self.activeAgents:
+            if a.getMoney() <= 0:
+                self.activeAgents.remove(a)
         ################ FLOP PHASE ################
         print("\n----- FLOP -----")
         self.gameState = "FLOP"
@@ -296,7 +299,10 @@ class Table:
                 self.activeAgents[0].receivePot(self.pot)
                 print("\nWINNING AGENT: " + str(self.activeAgents[0].id) + "\n")
             return
-
+        
+        for a in self.activeAgents:
+            if a.getMoney() <= 0:
+                self.activeAgents.remove(a)
         ################ TURN PHASE ################
         print("\n----- TURN -----")
         self.gameState = "TURN"
@@ -320,7 +326,10 @@ class Table:
                 self.activeAgents[0].receivePot(self.pot)
                 print("WINNING AGENT: " + str(self.activeAgents[0].id))
             return
-
+        
+        for a in self.activeAgents:
+            if a.getMoney() <= 0:
+                self.activeAgents.remove(a)
         ################ RIVER PHASE ################
         print("\n----- RIVER -----")
         self.gameState = "RIVER"
@@ -343,9 +352,13 @@ class Table:
                 self.activeAgents[0].receivePot(self.pot)
                 print("WINNING AGENT: " + str(self.activeAgents[0].id))
             return
+        
+        for a in self.activeAgents:
+            if a.getMoney() <= 0:
+                self.activeAgents.remove(a)
         ################ SHOWDOWN PHASE ################
         self.gameState = "SHOWDOWN"
-        
+        print("\n----- SHOWDOWN -----")
         best = []
         cardRank = 0
         #print(self.gameState)
@@ -355,6 +368,11 @@ class Table:
         print("\n")
         for a in self.agents:
             print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
+        
+        for a in self.activeAgents:
+                if a.getMoney() <= 0:
+                    self.activeAgents.remove(a)
+
         for a in self.activeAgents:
             if cardRank < a.findHand(True):
                 cardRank = a.findHand(True)
@@ -365,7 +383,7 @@ class Table:
         
         for a in best:
             a.receivePot(self.pot/len(best))
-            print("\nWINNING AGENT: " + str(a.id) + "\n")
+            print("WINNING AGENT: " + str(a.id) + "\n")
 
         return
     

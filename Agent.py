@@ -146,11 +146,16 @@ class Agent:
         self.money.collect(potAmount)
 
 #################################################
-####            AUXILIARY?               ########
+####                AUXILIARY?           ########
 #################################################
     
     def setProfile(self):
-        profile = random.randint(1,5)
+        #profile = random.randint(1,5)
+        if (self.id > 0):
+            profile = 3
+        else:
+            profile = 5
+
         if profile == 1:
             return "Risky"
         elif profile == 2:
@@ -280,7 +285,7 @@ class Agent:
                 root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile, self.risk,
                             self.table.pot, self.money.getGameBet(), betAmount, raiseAmount)
                 startingTime = time.time()
-                for _ in range(100):
+                for _ in range(10):
                     tree.rollout(root)
                 endTime = time.time() - startingTime
                 print("THIS IS THE DECISION MAKING-TIMING: " + str(endTime) + " seconds")
