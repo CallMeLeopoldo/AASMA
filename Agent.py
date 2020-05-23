@@ -33,6 +33,7 @@ class Agent:
         self.handVal = 0
         self.cardHistory = []
         self.deck = Deck()
+        self.risk = 0
         
         #self.currentBetAmount = 0
         #self.currentRaiseAmount = 0
@@ -79,8 +80,8 @@ class Agent:
             if(self.risk < 0.3):
                 return "CALL"
 
-        elif(self.getProfile() == "HAL-9000"):
-            if(self.risk > 0.6):
+        elif(self.getProfile() == "Balanced"):
+            if(self.risk > 0.8):
                 return "FOLD"
             if(self.risk < 0.3):
                 return "CALL"        
@@ -252,7 +253,6 @@ class Agent:
         #roundAvg = self.gameState.getRoundAverage()
         roundAvg = self.roundAverage
 
-        self.riskCalculation()
 
         if state != "PRE-FLOP":
             level = 0
@@ -273,10 +273,11 @@ class Agent:
                 elif goReactive == "CHECK":
                     return "CHECK"                
             else:
+                self.opponentModelCalculation()
                 tree = MCTS()
                 #root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions, self.profile,
                 #            self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
-                root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile,
+                root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile, self.risk,
                             self.table.pot, self.money.getGameBet(), betAmount, raiseAmount)
                 startingTime = time.time()
                 for _ in range(100):

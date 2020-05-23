@@ -250,7 +250,7 @@ class Table:
         #EVALUATE STATE OF GAME
         print("AGENTS:\n")
         for a in self.agents:
-            print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
+            print( "AGENT: " + str(a.id) + " PROFILE: " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
             print("HAND:")
             for c in a.cardHistory:
                 print("CARD NUMBER: " + c.getName())
