@@ -273,7 +273,7 @@ class StepNode(Node):
         elif self.profile == "Safe":
             return probability * 0.4 + hrating*0.3 + 0.2*self.pot + 0.1*(1/self.gameBet)
 
-        else:
+        elif self.profile == "Balanced":
             return 0.25 * probability + 0.25 * hrating + 0.2 * self.pot + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
 
     def find_children(self):

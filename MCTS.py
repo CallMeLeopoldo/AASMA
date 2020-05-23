@@ -19,6 +19,8 @@ class MCTS(object):
         self.root = None
         self.deck = None
         self.hand = None
+        self.nodesSelected = 0
+        self.nodesExpanded = 0
 
     def rollout(self, node):
         path = self.select(node)
@@ -45,6 +47,8 @@ class MCTS(object):
             return self.Q[n] / self.N[n]  # average reward
 
         #print(self.Q[max(self.children[node], key=score)])
+        print("NODES SELECTED: " + str(self.nodesSelected))
+        print("NODES EXPANDED: " + str(self.nodesExpanded))
         return max(self.children[node], key=score)
 
     def select(self, node):
@@ -54,14 +58,16 @@ class MCTS(object):
             path.append(node)
             if node not in self.children or not self.children[node]:
                 # node is either unexplored or terminal
+                self.nodesSelected += 1
                 return path
             unexplored = self.children[node] - self.children.keys()
             #print("this is unexplored")
-           # print(unexplored)
             if unexplored:
                 n = unexplored.pop()
                 path.append(n)
+                self.nodesSelected += 1
                 return path
+            self.nodesSelected += 1
             node = self._uct_select(node)  # descend a layer deeper
 
     def expand(self, node):
@@ -69,6 +75,7 @@ class MCTS(object):
         if node in self.children or node.isTerminal():
             return  # already expanded
         self.children[node] = node.find_children()
+        self.nodesExpanded += len(self.children[node])
         #print(len(self.children[node]))
 
     def simulate(self, node):
