@@ -5,7 +5,7 @@ from GameState import GameState
 
 class Table:
     
-    def __init__(self, environment, numRounds, numAgents, bigBlind):
+    def __init__(self, numRounds, numAgents, bigBlind):
         self.numRounds = numRounds
         self.agents = []
         self.activeAgents = []
@@ -16,7 +16,7 @@ class Table:
 
         self.gameStateClass = GameState()
         self.gameState = None
-        self.environment = environment
+        #self.environment = environment
 
         self.bigBlind = bigBlind
         self.smallBlind = round(bigBlind/2)
@@ -141,7 +141,7 @@ class Table:
             msg = self.sendMessage(self.turn)
             #msg = self.receiveMessage(self.turn)
             #print("SO THIS IS WHAT THE RETARDED AGENT NUMBER " + str(msg[1]) + " DID " + msg[0])
-            print("AGENT " + str(msg[1]) + " DID " + msg[0])
+            #print("AGENT " + str(msg[1]) + " DID " + msg[0])
             if(len(toRemove) == len(self.activeAgents) - 1):
                 break
             if "RAISE" == msg[0]:
@@ -159,7 +159,8 @@ class Table:
             
             if self.activeAgents[self.turn].getMoney() <= 0:
                 toRemove.append(self.activeAgents[self.turn])
-                
+            
+            print("AGENT " + str(msg[1]) + " DID " + msg[0] + " PUT " + str(self.betAmount)) 
             
             #WARN OTHER AGENTS
             self.sendWarn("warn", [self.turn, msg[0]])
@@ -196,8 +197,8 @@ class Table:
         self.pot = 0
         self.tableCards = []
         self.gameState = None
-        self.raiseAmmount = bigBlind
-        self.betAmmount = bigBlind
+        self.raiseAmount = bigBlind
+        self.betAmount = bigBlind
         self.currentBet = 0
 
         self.dealer += 1
@@ -422,5 +423,5 @@ line = sys.stdin.readline()
 numRounds = int(line.split(' ')[0])
 numAgents = int(line.split(' ')[1])
 bigBlind = int(line.split(' ')[2])
-table = Table(environment, numRounds, numAgents, bigBlind)
+table = Table(numRounds, numAgents, bigBlind)
 table.game(numRounds)
