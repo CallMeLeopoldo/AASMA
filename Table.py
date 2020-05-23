@@ -154,7 +154,12 @@ class Table:
                 self.canCheck = False
                 self.canRaise = True
             elif "FOLD" == msg[0]:
+                self.activeAgents[self.turn].fold()
                 toRemove.append(self.activeAgents[self.turn])
+            
+            if self.activeAgents[self.turn].getMoney() <= 0:
+                toRemove.append(self.activeAgents[self.turn])
+                
             
             #WARN OTHER AGENTS
             self.sendWarn("warn", [self.turn, msg[0]])
@@ -249,7 +254,7 @@ class Table:
 
         #EVALUATE STATE OF GAME
         print("AGENTS:\n")
-        for a in self.agents:
+        for a in self.activeAgents:
             print( "AGENT: " + str(a.id) + " PROFILE: " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
             print("HAND:")
             for c in a.cardHistory:
@@ -266,7 +271,7 @@ class Table:
                 self.activeAgents[0].receivePot(self.pot)
             return
         #print(self.gameState)
-        for a in self.agents:
+        for a in self.activeAgents:
             print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
             print("HAND:")
             for c in a.cardHistory:
@@ -290,7 +295,7 @@ class Table:
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
         print("\n")
-        for a in self.agents:
+        for a in self.activeAgents:
             print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
     
         # flop: betting round
@@ -301,7 +306,7 @@ class Table:
             return
         
         for a in self.activeAgents:
-            if a.getMoney() <= 0:
+            if a.money.getCurrent() <= 0:
                 self.activeAgents.remove(a)
         ################ TURN PHASE ################
         print("\n----- TURN -----")
@@ -317,7 +322,7 @@ class Table:
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
         print("\n")
-        for a in self.agents:
+        for a in self.activeAgents:
             print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
         
         # turn: betting round
@@ -328,7 +333,7 @@ class Table:
             return
         
         for a in self.activeAgents:
-            if a.getMoney() <= 0:
+            if a.money.getCurrent() <= 0:
                 self.activeAgents.remove(a)
         ################ RIVER PHASE ################
         print("\n----- RIVER -----")
@@ -343,7 +348,7 @@ class Table:
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
         print("\n")
-        for a in self.agents:
+        for a in self.activeAgents:
             print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
         
         # river: betting round
@@ -354,11 +359,12 @@ class Table:
             return
         
         for a in self.activeAgents:
-            if a.getMoney() <= 0:
+            if a.money.getCurrent() <= 0:
                 self.activeAgents.remove(a)
         ################ SHOWDOWN PHASE ################
         self.gameState = "SHOWDOWN"
         print("\n----- SHOWDOWN -----")
+
         best = []
         cardRank = 0
         #print(self.gameState)
@@ -366,11 +372,11 @@ class Table:
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
         print("\n")
-        for a in self.agents:
+        for a in self.activeAgents:
             print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
         
         for a in self.activeAgents:
-                if a.getMoney() <= 0:
+                if a.money.getCurrent() <= 0:
                     self.activeAgents.remove(a)
 
         for a in self.activeAgents:
@@ -412,9 +418,9 @@ class Table:
 
 
 line = sys.stdin.readline()
-environment = str(line.split(' ')[0])
-numRounds = int(line.split(' ')[1])
-numAgents = int(line.split(' ')[2])
-bigBlind = int(line.split(' ')[3])
+#environment = str(line.split(' ')[0])
+numRounds = int(line.split(' ')[0])
+numAgents = int(line.split(' ')[1])
+bigBlind = int(line.split(' ')[2])
 table = Table(environment, numRounds, numAgents, bigBlind)
 table.game(numRounds)

@@ -50,7 +50,7 @@ class Chips:
         self.current -= blind
 
     def fold(self):
-        self.lost += self.bet
+        self.lost += self.gameBet
         self.roundBet = 0
         self.gameBet = 0
 
