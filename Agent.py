@@ -270,7 +270,7 @@ class Agent:
                 root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile, self.risk,
                             self.table.pot, self.money.getGameBet(), betAmount, raiseAmount)
                 startingTime = time.time()
-                for _ in range(5):
+                for _ in range(20):
                     tree.rollout(root)
                 endTime = time.time() - startingTime
                 #print("THIS IS THE DECISION MAKING-TIMING: " + str(endTime) + " seconds")

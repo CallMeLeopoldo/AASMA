@@ -72,23 +72,27 @@ class MCTS(object):
             #for j in self.children[node]:
             #    print(j)
             #print("--------------------------------------- CHILDREN DONE -----------------------------------")
-            if(unexplored == True):
-                print("HE SELECTED ANOTHER THING")
+           # if(unexplored == True):
+           #     print("HE SELECTED ANOTHER THING")
             if unexplored:
                 n = unexplored.pop()
                 path.append(n)
                 self.nodesSelected += 1
                 return path
-            print("HELLO THERE")
+            #print("HELLO THERE")
             self.nodesSelected += 1
             node = self._uct_select(node)  # descend a layer deeper
 
     def expand(self, node):
         "Update the `children` dict with the children of `node`"
-        if node in self.children:
-            return  # already expanded
-        self.children[node] = node.find_children()
-        self.nodesExpanded += len(self.children[node])
+        #if node in self.children:
+        #    return  # already expanded
+        if node.isTerminal():
+            self.children[node] = []
+        else: 
+            self.children[node] = node.find_children()
+        #self.children[node] = node.find_children()
+        #self.nodesExpanded += len(self.children[node])
         #print(self.children[node] == self.children.keys())
         #print(len(self.children[node]))
 

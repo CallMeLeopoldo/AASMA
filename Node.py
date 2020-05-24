@@ -24,6 +24,7 @@ class Action():
 
     def sample_state(self, lst=None):
         if  not self.node.deck.isEmpty():
+            #print(len(self.node.deck.cards))
             i = 0
             children = []
 
