@@ -60,22 +60,36 @@ class MCTS(object):
                 # node is either unexplored or terminal
                 self.nodesSelected += 1
                 return path
+            #childParents = copy.deepcopy(self.children.keys())
+            #childParents.remove(node.state)
             unexplored = self.children[node] - self.children.keys()
             #print("this is unexplored")
+            #print("--------------------------------------- KEYS BEGIN -----------------------------------")
+            #for i in self.children.keys():
+            #    print(i)
+            #print("--------------------------------------- KEYS DONE -----------------------------------")
+            #print("--------------------------------------- CHILDREN DONE -----------------------------------")
+            #for j in self.children[node]:
+            #    print(j)
+            #print("--------------------------------------- CHILDREN DONE -----------------------------------")
+            if(unexplored == True):
+                print("HE SELECTED ANOTHER THING")
             if unexplored:
                 n = unexplored.pop()
                 path.append(n)
                 self.nodesSelected += 1
                 return path
+            print("HELLO THERE")
             self.nodesSelected += 1
             node = self._uct_select(node)  # descend a layer deeper
 
     def expand(self, node):
         "Update the `children` dict with the children of `node`"
-        if node in self.children or node.isTerminal():
+        if node in self.children:
             return  # already expanded
         self.children[node] = node.find_children()
         self.nodesExpanded += len(self.children[node])
+        #print(self.children[node] == self.children.keys())
         #print(len(self.children[node]))
 
     def simulate(self, node):

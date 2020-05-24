@@ -16,7 +16,6 @@ class Table:
 
         self.gameStateClass = GameState()
         self.gameState = None
-        #self.environment = environment
 
         self.bigBlind = bigBlind
         self.smallBlind = round(bigBlind/2)

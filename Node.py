@@ -269,10 +269,10 @@ class StepNode(Node):
 
     def getHeuristics(self, probability, hrating):
         if self.profile == "Risky":
-            return (1/probability) * 0.4 + hrating*0.4 + 0.1*(self.pot/self.risk)  + 0.1*(1/self.gameBet)
+            return (1/probability) * 0.4 + hrating*0.3 + 0.3*(self.gameBet)
         
         elif self.profile == "Safe":
-            return probability * 0.4 + hrating*0.3 + 0.2*(self.pot/self.risk) + 0.1*(1/self.gameBet)
+            return probability * 0.4 + hrating*0.3 + 0.2*(self.pot/self.risk) + 0.3*(self.gameBet)
 
         elif self.profile == "Balanced":
             return 0.25 * probability + 0.25 * hrating + 0.2 *(self.pot/self.risk) + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)

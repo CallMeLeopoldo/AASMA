@@ -43,7 +43,7 @@ class Agent:
 
         self.gameState = GameState()
         
-        self.profile = self.setProfile()
+        self.profile = self.setStandardProfile()
         self.playRisk = 0
         self.opponentPlayRecord = []
         #print(self.getProfile())
@@ -71,22 +71,18 @@ class Agent:
 
     def agentReactiveDecision(self, actions):
 
-        if(self.getProfile() == "Risky"):
-            if(self.risk > 2):
-                return "FOLD"
-        elif(self.getProfile() == "Safe"):
-            if(self.risk > 0.6):
-                return "FOLD"
-            if(self.risk < 0.3):
-                return "CALL"
+        #if(self.getProfile() == "Risky"):
+        #    if(self.risk > 2):
+        #        return "FOLD"
+        #elif(self.getProfile() == "Safe"):
+        #    if(self.risk > 0.6):
+        #        return "FOLD"
+#
+        #elif(self.getProfile() == "Balanced"):
+        #    if(self.risk > 1):
+        #        return "FOLD"     
 
-        elif(self.getProfile() == "Balanced"):
-            if(self.risk > 0.8):
-                return "FOLD"
-            if(self.risk < 0.3):
-                return "CALL"        
-
-        elif(self.getProfile() == "Dummy"):
+        if(self.getProfile() == "Dummy"):
             if(self.risk > 1):
                 return "FOLD"
             else:
@@ -153,11 +149,7 @@ class Agent:
 #################################################
     
     def setProfile(self):
-        #profile = random.randint(1,5)
-        if (self.id > 0):
-            profile = 3
-        else:
-            profile = 5
+        profile = random.randint(1,5)
 
         if profile == 1:
             return "Risky"
@@ -170,6 +162,21 @@ class Agent:
         elif profile == 5:
             return "Balanced"
         return
+
+    def setStandardProfile(self):
+        profile = self.id + 1
+
+        if profile == 1:
+            return "Risky"
+        elif profile == 2:
+            return "Safe"
+        elif profile == 3:
+            return "Dummy"
+        elif profile == 4:
+            return "Copycat"
+        elif profile == 5:
+            return "Balanced"
+        return    
     
     def calculateRoundAverage(self, counter):
         #self.gameState.incrementRoundHistory(counter)
@@ -208,43 +215,16 @@ class Agent:
         else:
             potF = 1
 
-        self.risk = moneyF*0.5 + potF*0.5
+        self.risk = moneyF*0.5 + potF*0.5/(moneyF + potF)
         print(self.risk)
 
     
     def opponentModelCalculation(self):
         potF = 0
-        action = 0
-        raiseF = self.opponentPlayRecord.count("RAISE")
-        callF = self.opponentPlayRecord.count("CALL")
-        foldF = self.opponentPlayRecord.count("FOLD")
-        checkF = self.opponentPlayRecord.count("CHECK")
-
-        actionF = 0.1*foldF + 0.1*checkF + 0.3*callF + 0.5*raiseF
-
-        if raiseF != 0:
-            raiseF = raiseF/len(self.opponentPlayRecord)
-
-        if callF != 0:
-            callF = callF/len(self.opponentPlayRecord)
-
-        if checkF != 0:
-            checkF = checkF/len(self.opponentPlayRecord) 
 
         moneyF = self.checkTheirChips()/(self.checkTheirChips() + self.checkMyChips())
 
-        if(self.table.pot < 0.25*self.checkMyChips()):
-            potF = 0
-        elif(self.table.pot < 0.5*self.checkMyChips()):
-            potF = 0.25
-        elif(self.table.pot < 0.75*self.checkMyChips()):
-            potF = 0.5
-        elif(self.table.pot < 1*self.checkMyChips()):
-            potF = 0.75
-        else:
-            potF = 1
-
-        self.risk = moneyF*0.3 + potF*0.3 + actionF*0.4
+        self.risk = moneyF
         print(self.risk)
         
     
@@ -263,6 +243,7 @@ class Agent:
 
 
         if state != "PRE-FLOP":
+            #self.riskCalculation()
             level = 0
             if state == "TURN": level = 1
             if state == "RIVER": level = 2
@@ -281,14 +262,15 @@ class Agent:
                 elif goReactive == "CHECK":
                     return "CHECK"                
             else:
-                self.opponentModelCalculation()
+                #self.opponentModelCalculation()
+                self.risk = 0.5
                 tree = MCTS()
                 #root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions, self.profile,
                 #            self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
                 root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile, self.risk,
                             self.table.pot, self.money.getGameBet(), betAmount, raiseAmount)
                 startingTime = time.time()
-                for _ in range(50):
+                for _ in range(5):
                     tree.rollout(root)
                 endTime = time.time() - startingTime
                 #print("THIS IS THE DECISION MAKING-TIMING: " + str(endTime) + " seconds")
