@@ -263,12 +263,6 @@ class Table:
         # pay small blind and big blind
         self.blinds()
 
-        print("Press 1 to continue")
-        while(True):
-            a = keyboard.read_key()
-            if a == '1':
-                break
-
         self.deck.shuffle()
 
         # deal 2 cards to each agent
@@ -342,7 +336,7 @@ class Table:
         # flop: place 3 cards showing on table
         self.dealCardsTable(3)
 
-        print("Press to continue")
+        print("Press 1 to continue")
         while(True):
             a = keyboard.read_key()
             if a == '1':
