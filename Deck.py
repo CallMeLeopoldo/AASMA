@@ -1,3 +1,11 @@
+##########################################################################
+# Deck implements the class Deck and the class Card.
+# Card is our representation of actual game cards. They have a number
+# and a suit. We can check if a Card has been revealed or not.
+# Deck holds the 52 cards of a traditional deck. It is able to shuffle
+# them when necessary. Deck is also able to deal cards
+##########################################################################
+
 import random
 
 class Card:

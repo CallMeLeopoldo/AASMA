@@ -1,3 +1,10 @@
+##########################################################################
+# Node is the class that implements the Nodes of the MCTS.
+# The subclass StepNode is the one we use here. Each child of the StepNode
+# is created through the method sample_state in class Action. This 
+# allows for a fluidity in the Nodes that would be impossible otherwise.
+##########################################################################
+
 from Deck import Deck
 from Deck import Card
 import ratings
@@ -24,7 +31,7 @@ class Action():
 
     def sample_state(self, lst=None):
         if  not self.node.deck.isEmpty():
-            #print(len(self.node.deck.cards))
+            
             i = 0
             children = []
 
@@ -37,8 +44,6 @@ class Action():
                 child.gameBet = self.node.gameBet
                 child.pot = self.node.pot
 
-                
-                #print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
                 if lst == None:
                     children.append(child)
                     return children
@@ -53,8 +58,6 @@ class Action():
                     new_deck.removeCard(new_card.getName())
                     new_history = copy.deepcopy(self.node.cardHistory)
                     new_history.append(new_card)
-                    #POSSIBLE TODO: Make sure the probability of hand to show impacts the heuristic
-                    #self.node.findBestHand(self.node.cardHistory)
 
                     if(self.node.level == 0):
                         temp = "TURN"
@@ -67,7 +70,6 @@ class Action():
                     new_level = self.node.level + 1
                     child = StepNode(self.node, new_level, self.action, self.node.numPlayers, temp, new_deck, new_history, self.node.irlHand, self.node.roundAverage, self.node.actions, self.node.profile, self.node.risk)
                     child.cardHistory.append(new_card)
-                    #print("my parent is " + str(self.node.level) + " and i am " + str(child.level))
                     
                     if(self.node.state == "TURN"):
                         child.actions = ["CALL", "FOLD", "RAISE", "CHECK"]
@@ -98,9 +100,7 @@ class Action():
                         children.append(child)
                     else:
                         lst.append(child)
-                    #print("this is my game bet " + str(child.gameBet))
 
-                #print(i)
                 if lst == None:
                     return children
                 else:
@@ -124,7 +124,6 @@ class StepNode(Node):
         self.hand = None
         self.cardHistory = cardHistory
         self.irlHand = irlHand
-        #self.flop = flop
         self.giveUp = False
         self.roundAverage = roundAverage
         self.pot = pot
@@ -270,27 +269,25 @@ class StepNode(Node):
 
     def getHeuristics(self, probability, hrating):
         if self.profile == "Risky":
-            return (1/probability) * 0.4 + hrating*0.3 + 0.3*(self.gameBet)
+            return (1/probability) * 0.3 + hrating * 0.4 + self.pot * 0.2 + self.gameBet * 0.2 
         
         elif self.profile == "Safe":
-            return probability * 0.4 + hrating*0.3 + 0.2*(self.pot/self.risk) + 0.3*(self.gameBet)
+            cenas = probability * 0.6 + hrating * 0.2 + (1/self.pot) * 0.2 + (1/self.gameBet) * 0.6
+            return cenas
 
         elif self.profile == "Balanced":
-            return 0.25 * probability + 0.25 * hrating + 0.2 *(self.pot/self.risk) + 0.2 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
+            return 0.25 * probability + 0.25 * hrating + 0.2 * (self.pot/self.risk) + 0.3 * (1/self.gameBet) + 0.1 * (1/self.numPlayers)
 
     def find_children(self):
         children = []
         for action in self.untried_actions():
             act = Action(action, self)
             act.sample_state(children)
-            #newState = act.sample_state()
-            #children.append(newState)
         return children
 
     def find_random_child(self):
         action = Action(self.randomChild(),self)
         lst = action.sample_state()
-        #print("length i guess " + str(len(lst)))
         return random.choice(lst)
 
     def isTerminal(self):
@@ -304,8 +301,7 @@ class StepNode(Node):
     def randomChild(self):
         if self.isTerminal():
             return None  # If the game is finished then no moves can be made
-        action = random.choice(self.untried_actions())   
-        #print(action)        
+        action = random.choice(self.untried_actions())  
         return action 
 
     def __str__(self):

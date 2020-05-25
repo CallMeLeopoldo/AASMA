@@ -1,3 +1,11 @@
+##########################################################################
+# Agent is the class that implements the Agents of the System.
+# The class keeps its own state and has direct access to the table.
+# Agents with different profiles will process information differently.
+# To observe risk calculation in command line, activate the prints at
+# lines 250 and 263.
+##########################################################################
+
 from enum import Enum
 from queue import Queue
 from Chips import Chips
@@ -10,50 +18,38 @@ import random
 import itertools
 import time
 
-class Action(Enum):
-    #NONE = "none"
-    CALL = "call"
-    RAISE = "raise"
-    CHECK = "check"
-    FOLD = "fold"
-    #SHOWHAND = "show hand"
-    #PAYBLIND = "pay blind"
-
-
 class Agent:
-    #desire = Desire.CALL
+    
     action = None   #TODO: check if this should be here 
-    #plan = Queue().queue 
 
-    def __init__(self, identifier, table):
+    def __init__(self, identifier, table, chips, profileNumber = None):
         self.table = table
         self.id = identifier
-        self.money = Chips(5000)
+        self.money = Chips(chips)
         self.hand = []
         self.handVal = 0
         self.cardHistory = []
         self.deck = Deck()
         self.risk = 0
         
-        #self.currentBetAmount = 0
-        #self.currentRaiseAmount = 0
-        #self.state = None
         self.roundHistory = []
         self.roundAverage = 0
 
         self.gameState = GameState()
         
-        self.profile = self.setStandardProfile()
+        if profileNumber == None:
+            self.profile = self.setStandardProfile()
+        else:
+            self.profile = self.setProfile(profileNumber)
         self.playRisk = 0
         self.opponentPlayRecord = []
-        #print(self.getProfile())
 
     
     def getId(self):
         return self.id
     
 #################################################
-####            DECISION-MAKING             #####
+####        RANDOM DECISION-MAKING          #####
 #################################################
     
     def randomChoice(self, canCheck, canRaise):
@@ -71,16 +67,17 @@ class Agent:
 
     def agentReactiveDecision(self, actions):
 
-        #if(self.getProfile() == "Risky"):
-        #    if(self.risk > 2):
-        #        return "FOLD"
-        #elif(self.getProfile() == "Safe"):
-        #    if(self.risk > 0.6):
-        #        return "FOLD"
-#
-        #elif(self.getProfile() == "Balanced"):
-        #    if(self.risk > 1):
-        #        return "FOLD"     
+        if(self.getProfile() == "Risky"):
+            if(self.risk > 2):
+                return "FOLD"
+
+        elif(self.getProfile() == "Safe"):
+            if(self.risk > 0.6):
+                return "FOLD"
+
+        elif(self.getProfile() == "Balanced"):
+            if(self.risk > 1):
+                return "FOLD"     
 
         if(self.getProfile() == "Dummy"):
             if(self.risk > 1):
@@ -96,28 +93,14 @@ class Agent:
         return
 
 
-
-
-
 #################################################
 ####            COMMUNICATION               #####
 #################################################
-
-    def tableGetState(self):
-        pass
-        #communicate w table to get which state the game is in, i.e flop, turn, river, etc
     
     def updateGameState(self, other):
         self.gameState.updateGameState(other)
 
     def receiveMessage(self):
-        #self.state = msg[0]
-        #self.currentBetAmount = msg[1]
-        #self.currentRaiseAmount = msg[2]
-        #canCheck = msg[3]
-        #canRaise = msg[4]
-        #actions = msg[5]
-        #return [self.makeBet(self.currentBetAmount, self.currentRaiseAmount, canCheck, canRaise, actions), self.id]
         return [self.makeBet(), self.id]
 
     def receiveWarn(self, flag, msg):
@@ -128,7 +111,6 @@ class Agent:
     def sendMessage(self,msg):
         return [msg, self.id]
 
-    
     def receiveCards(self, cardList):
         for card in cardList:
             self.cardHistory.append(card)
@@ -145,12 +127,10 @@ class Agent:
         self.money.fold()
 
 #################################################
-####                AUXILIARY?           ########
+####                UPDATES              ########
 #################################################
     
-    def setProfile(self):
-        profile = random.randint(1,5)
-
+    def setProfile(self, profile):
         if profile == 1:
             return "Risky"
         elif profile == 2:
@@ -164,7 +144,7 @@ class Agent:
         return
 
     def setStandardProfile(self):
-        profile = self.id + 1
+        profile = random.randint(1,5)
 
         if profile == 1:
             return "Risky"
@@ -179,8 +159,6 @@ class Agent:
         return    
     
     def calculateRoundAverage(self, counter):
-        #self.gameState.incrementRoundHistory(counter)
-        #self.gameState.calculateRoundAverage()
         self.roundHistory.append(counter)
         self.roundAverage = sum(self.roundHistory)/len(self.roundHistory)
     
@@ -200,7 +178,40 @@ class Agent:
     def riskCalculation(self):
         potF = 0
 
-        #actionF = 0.1*foldF + 0.1*checkF + 0.3*callF + 0.5*raiseF
+        moneyF = self.checkTheirChips()/(self.checkTheirChips() + self.checkMyChips())
+
+        if(self.table.pot < 0.25*self.checkMyChips()):
+            potF = 0
+        elif(self.table.pot < 0.5*self.checkMyChips()):
+            potF = 0.25
+        elif(self.table.pot < 0.75*self.checkMyChips()):
+            potF = 0.5
+        elif(self.table.pot < 1*self.checkMyChips()):
+            potF = 0.75
+        else:
+            potF = 1
+
+        self.risk = moneyF*0.6 + potF*0.4/(moneyF + potF)
+
+    
+    def opponentModelCalculation(self):
+        potF = 0
+        action = 0
+        raiseF = self.opponentPlayRecord.count("RAISE")
+        callF = self.opponentPlayRecord.count("CALL")
+        foldF = self.opponentPlayRecord.count("FOLD")
+        checkF = self.opponentPlayRecord.count("CHECK")
+
+        actionF = 0.1*foldF + 0.1*checkF + 0.3*callF + 0.5*raiseF
+
+        if raiseF != 0:
+            raiseF = raiseF/len(self.opponentPlayRecord)
+
+        if callF != 0:
+            callF = callF/len(self.opponentPlayRecord)
+
+        if checkF != 0:
+            checkF = checkF/len(self.opponentPlayRecord)
 
         moneyF = self.checkTheirChips()/(self.checkTheirChips() + self.checkMyChips())
 
@@ -215,22 +226,10 @@ class Agent:
         else:
             potF = 1
 
-        self.risk = moneyF*0.5 + potF*0.5/(moneyF + potF)
-        print(self.risk)
-
-    
-    def opponentModelCalculation(self):
-        potF = 0
-
-        moneyF = self.checkTheirChips()/(self.checkTheirChips() + self.checkMyChips())
-
-        self.risk = moneyF
-        print(self.risk)
+        self.risk = moneyF*0.3 + potF*0.3 + actionF*0.4
         
-    
-    #def makeBet(self, betAmount, raiseAmount, canCheck, canRaise, actions):
-    def makeBet(self):                                                  # TODO fix this
-        #action = self.randomChoice(canCheck, canRaise)
+
+    def makeBet(self):
 
         betAmount = self.gameState.getBetAmount()
         raiseAmount = self.gameState.getRaiseAmount()
@@ -238,19 +237,18 @@ class Agent:
         canRaise = self.gameState.getCanRaise()
         actions = self.gameState.getActions()
         state = self.gameState.getSate()
-        #roundAvg = self.gameState.getRoundAverage()
         roundAvg = self.roundAverage
 
 
         if state != "PRE-FLOP":
-            #self.riskCalculation()
+            self.riskCalculation()
             level = 0
             if state == "TURN": level = 1
             if state == "RIVER": level = 2
 
             goReactive = self.agentReactiveDecision(actions)
             if(goReactive is not None):
-            #RETURN GOREACTIVE
+                #print("AGENT " + str(self.id) + " IS ACTING REACTIVELY. HAS RISK: " + str(self.risk))
                 if goReactive == "CALL":
                     self.money.bet(betAmount)
                     return "CALL"
@@ -262,18 +260,16 @@ class Agent:
                 elif goReactive == "CHECK":
                     return "CHECK"                
             else:
-                #self.opponentModelCalculation()
-                self.risk = 0.5
+                self.opponentModelCalculation()
+                #print("AGENT " + str(self.id) + " IS ACTING DELIBERATELY. HAS RISK: " + str(self.risk))
                 tree = MCTS()
-                #root = StepNode(None, level, None, len(self.table.activeAgents), self.table.gameState, self.deck, self.cardHistory, self.handVal, self.roundAverage, actions, self.profile,
-                #            self.table.pot, self.money.getGameBet(), self.currentBetAmount, self.currentRaiseAmount)
                 root = StepNode(None, level, None, len(self.table.activeAgents), state, self.deck, self.cardHistory, self.handVal, roundAvg, actions, self.profile, self.risk,
                             self.table.pot, self.money.getGameBet(), betAmount, raiseAmount)
                 startingTime = time.time()
                 for _ in range(20):
                     tree.rollout(root)
                 endTime = time.time() - startingTime
-                #print("THIS IS THE DECISION MAKING-TIMING: " + str(endTime) + " seconds")
+
 
                 action = tree.choose(root, canCheck, canRaise)
 

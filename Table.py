@@ -1,11 +1,24 @@
+##########################################################################
+# Table is our Game Manager and runs the game.
+# Table keeps a lot of information in state. It controls the game, 
+# creates Agents and checks which ones are active in game round or in
+# game.
+# This file also contains the functions that permit the reading
+# of input through the command line. Do not delete
+# The prints in this file allow us to view the proceedings of the game.
+# To watch risk calculation activate the prints indicated in class Agent.
+##########################################################################
+
 import sys
+import ratings
+import keyboard
 from Deck import Deck
 from Agent import Agent
 from GameState import GameState
 
 class Table:
     
-    def __init__(self, numRounds, numAgents, bigBlind):
+    def __init__(self, numRounds, numAgents, bigBlind, chips, agentProfiles = None):
         self.numRounds = numRounds
         self.agents = []
         self.activeAgents = []
@@ -29,13 +42,17 @@ class Table:
         self.dealer = 0
         self.turn = 0
 
+        self.agentProfiles = agentProfiles
+
         i = 0
         while i < numAgents:
-            agent = Agent(i, self)
+            if agentProfiles == None:
+                agent = Agent(i, self, chips)
+            else:
+                agent = Agent(i, self, chips, agentProfiles[i])
             self.agents.append(agent)
             self.activeAgents.append(agent)
             i += 1
-
 
 
     ##################################################
@@ -58,16 +75,16 @@ class Table:
     def addToPot(self, amount):
         self.pot += amount
 
-
     # agents pay small blind and big blind 
     def blinds(self):
         self.passTurn()
         self.agents[self.turn].payBlind(self.smallBlind)
+        print("AGENT " + str(self.turn) + " PAYED SMALL BLIND: " + str(self.smallBlind))
         self.addToPot(self.smallBlind)
         self.passTurn()
         self.agents[self.turn].payBlind(self.bigBlind)
+        print("AGENT " + str(self.turn) + " PAYED BIG BLIND: " + str(self.bigBlind))
         self.addToPot(self.bigBlind)
-
 
     # self.turn has the activeAgents index. returns agent id
     def passTurn(self):
@@ -78,12 +95,10 @@ class Table:
             nextTurn += 1
         self.turn = nextTurn
 
-
     # discards one card
     def discardCard(self):
         card = self.deck.dealCard()
         self.discardPile.append(card)
-        
 
     # places one card on the table
     def dealCardsTable(self, num):
@@ -97,13 +112,11 @@ class Table:
         for a in self.activeAgents:
             a.receiveCards(dealtCards)
 
-
     # deals two cards to agent
     def dealCardsAgent(self, agent):
         card1 = self.deck.dealCard()
         card2 = self.deck.dealCard()
         agent.receiveCards([card1, card2])
-    
 
     # doubles both bet amount and raise amount
     def doubleAmounts(self):
@@ -119,7 +132,7 @@ class Table:
         return actions
 
     def bettingRound(self, state, counter):
-
+        #which actions are allowed at beginning of a betting round
         if counter == 0:
             self.betAmount = self.bigBlind
             self.canCheck = True
@@ -129,46 +142,49 @@ class Table:
         toRemove = []
 
         while nAgents > 0:
+        
             self.passTurn()
             actions = self.whatToDo()
-            #print("VALUE OF CANCHECK: " + str(self.canCheck))
-            #print("VALUE OF CANRAISE: " + str(self.canRaise))
 
             self.updateGameState(state, actions)
 
-            #msg = self.sendMessage(self.turn, [state, self.betAmount, self.raiseAmount, self.canCheck, self.canRaise, actions])
             msg = self.sendMessage(self.turn)
-            #msg = self.receiveMessage(self.turn)
-            #print("SO THIS IS WHAT THE RETARDED AGENT NUMBER " + str(msg[1]) + " DID " + msg[0])
-            #print("AGENT " + str(msg[1]) + " DID " + msg[0])
+            
             if(len(toRemove) == len(self.activeAgents) - 1):
                 break
             if "RAISE" == msg[0]:
-                #print("WAIT A SECOND")
                 self.betAmount += self.raiseAmount
                 self.addToPot(self.betAmount)
                 self.canCheck = False
+                print("AGENT " + str(msg[1]) + " DID " + msg[0] + " AND BET " + str(self.betAmount))
             elif "CALL" == msg[0]:
                 self.addToPot(self.betAmount)
                 self.canCheck = False
                 self.canRaise = True
+                print("AGENT " + str(msg[1]) + " DID " + msg[0] + " AND BET " + str(self.betAmount))
             elif "FOLD" == msg[0]:
                 self.activeAgents[self.turn].fold()
                 toRemove.append(self.activeAgents[self.turn])
+                print("AGENT " + str(msg[1]) + " DID " + msg[0] + " AND IS REMOVED FROM GAME ROUND")
+            elif "CHECK" == msg[0]:
+                print("AGENT " + str(msg[1]) + " DID " + msg[0] + " AND DID NOT BET")
             
             if self.activeAgents[self.turn].getMoney() <= 0:
                 toRemove.append(self.activeAgents[self.turn])
+                print("AGENT " + str(msg[1]) + " RAN OUT OF MONEY AND IS REMOVED FROM GAME")
             
-            print("AGENT " + str(msg[1]) + " DID " + msg[0] + " PUT " + str(self.betAmount)) 
-            
+            print("POT CURRENTLY AT " + str(self.pot))
+
             #WARN OTHER AGENTS
             self.sendWarn("warn", [self.turn, msg[0]])
 
             nAgents -= 1
                     
+        #removes agents who have folded
         for el in toRemove:
             self.activeAgents.remove(el)
 
+        #to guarantee agents have bet the same
         bet = -1
         newRound = False
         for a in self.activeAgents:
@@ -189,8 +205,8 @@ class Table:
                     a.resetRoundBet()
                     a.calculateRoundAverage(counter+1)
                 return True
-
     
+    #reset table structures for another gameround
     def reset(self, bigBlind):
         self.deck = Deck()
         self.pot = 0
@@ -216,8 +232,6 @@ class Table:
         self.gameStateClass.setBetAmount(self.betAmount)
         self.gameStateClass.setRaiseAmount(self.raiseAmount)
         self.gameStateClass.setState(state)
-        #self.gameState.setRoundHistory(other.getRoundHistory())
-        #self.gameState.setRoundAverage(other.getRoundAverage())
         self.gameStateClass.setCanCheck(self.canCheck)
         self.gameStateClass.setCanRaise(self.canRaise)
         self.gameStateClass.setActions(actions)
@@ -230,9 +244,6 @@ class Table:
         for a in self.activeAgents:
             if(a.id != self.turn):
                 a.receiveWarn(flag,msg)
-    
-    #def receiveMessage(self, agent, msg):
-    #    return msg
 
     #################################################
     ####                  GAME                  #####
@@ -240,11 +251,23 @@ class Table:
     
     def gameRound(self):
         
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+        
         ################ PRE GAME PHASE ################
         self.turn = self.dealer
 
         # pay small blind and big blind
         self.blinds()
+
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
 
         self.deck.shuffle()
 
@@ -252,34 +275,63 @@ class Table:
         for a in self.agents:
             self.dealCardsAgent(a)
 
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+        print("\nCARDS ARE DEALT TO THE AGENTS")
+
         #EVALUATE STATE OF GAME
-        print("AGENTS:\n")
         for a in self.activeAgents:
-            print( "AGENT: " + str(a.id) + " PROFILE: " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
-            print("HAND:")
+            print( "AGENT: " + str(a.id))
             for c in a.cardHistory:
                 print("CARD NUMBER: " + c.getName())
-            print("\n")
+        
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         
         ################ PRE FLOP PHASE ################
-        print("----- PRE-FLOP -----")
+        print("\n----- PRE-FLOP -----")
         self.gameState = "PRE-FLOP"
+
+        print("\nBETTING STARTS")
+
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
 
         # pre flop: betting round
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
+                print("WINNING AGENT: " + str(self.activeAgents[0].id) + " RECEIVES: " + str(self.pot) + "\n")
             return
-        #print(self.gameState)
+
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+            
         for a in self.activeAgents:
-            print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
-            print("HAND:")
-            for c in a.cardHistory:
-                print("CARD NUMBER: " + c.getName())
+            print( "AGENT: " + str(a.id) + "; PROFILE " + a.getProfile() + "; MONEY: " + str(a.money.getCurrent()) + "; TOTAL BET:" + str(a.money.getGameBet()))
 
         for a in self.activeAgents:
             if a.getMoney() <= 0:
                 self.activeAgents.remove(a)
+        
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
         ################ FLOP PHASE ################
         print("\n----- FLOP -----")
         self.gameState = "FLOP"
@@ -290,25 +342,65 @@ class Table:
         # flop: place 3 cards showing on table
         self.dealCardsTable(3)
 
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+            
         #print(self.gameState)
-        print("TABLE CARDS: ")
+        print("\nCARDS ARE DEALT TO THE TABLE: ")
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
-        print("\n")
+        
+        print("\nPLAYERS HOLD:")
         for a in self.activeAgents:
-            print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
-    
+            print("->AGENT " + str(a.id) + " HAS: " + str(ratings.handName[a.showHand()]))
+            for c in a.cardHistory:
+                print("CARD NUMBER: " + c.getName())
+            print("Press 1 to continue")
+            while(True):
+                b = keyboard.read_key()
+                if b == "1":
+                    break
+        
         # flop: betting round
+        print("\nBETTING STARTS")
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
-                print("\nWINNING AGENT: " + str(self.activeAgents[0].id) + "\n")
+                print("WINNING AGENT: " + str(self.activeAgents[0].id) + " RECEIVES: " + str(self.pot) + "\n")
             return
+        
+        print("\nBETTING ENDS")
+
+        print("Press 1 to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
+        print("STATE OF THE AGENTS AFTER THE FLOP BETTING ROUND")
+        for a in self.activeAgents:
+            print( "AGENT: " + str(a.id) + "; PROFILE " + a.getProfile() + "; MONEY: " + str(a.money.getCurrent()) + "; TOTAL BET:" + str(a.money.getGameBet()))
         
         for a in self.activeAgents:
             if a.money.getCurrent() <= 0:
                 self.activeAgents.remove(a)
+
         ################ TURN PHASE ################
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
         print("\n----- TURN -----")
         self.gameState = "TURN"
 
@@ -317,63 +409,159 @@ class Table:
 
         # turn: add 1 card showing on table
         self.dealCardsTable(1)
-        #print(self.gameState)
+        
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
         print("TABLE CARDS: ")
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
-        print("\n")
-        for a in self.activeAgents:
-            print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
         
+        print("\nPLAYERS HOLD:")
+        for a in self.activeAgents:
+            print("Press to continue")
+            while(True):
+                b = keyboard.read_key()
+                if b == '1':
+                    break
+            print("->AGENT " + str(a.id) + " HAS: " + str(ratings.handName[a.showHand()]))
+            for c in a.cardHistory:
+                print("CARD NUMBER: " + c.getName())
+
         # turn: betting round
+        print("\nBETTING STARTS")
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
-                print("WINNING AGENT: " + str(self.activeAgents[0].id))
+                print("WINNING AGENT: " + str(self.activeAgents[0].id) + " RECEIVES: " + str(self.pot) + "\n")
             return
         
+        print("\nBETTING ENDS")
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
+        print("STATE OF THE AGENTS AFTER THE TURN BETTING ROUND")
+        for a in self.activeAgents:
+            print( "AGENT: " + str(a.id) + "; PROFILE " + a.getProfile() + "; MONEY: " + str(a.money.getCurrent()) + "; TOTAL FAR: " + str(a.money.getGameBet()))
+
         for a in self.activeAgents:
             if a.money.getCurrent() <= 0:
                 self.activeAgents.remove(a)
+
         ################ RIVER PHASE ################
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         print("\n----- RIVER -----")
         self.gameState = "RIVER"
+
         # river: double bet ammount and raise ammount
         self.doubleAmounts()
 
         # river: add 1 card showing on table
         self.dealCardsTable(1)
-        #print(self.gameState)
+        
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         print("TABLE CARDS: ")
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
-        print("\n")
-        for a in self.activeAgents:
-            print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
         
+        print("\nPLAYERS HOLD:")
+        for a in self.activeAgents:
+            print("Press to continue")
+            while(True):
+                b = keyboard.read_key()
+                if b == '1':
+                    break
+            print("->AGENT " + str(a.id) + " HAS: " + str(ratings.handName[a.showHand()]))
+            for c in a.cardHistory:
+                print("CARD NUMBER: " + c.getName())
+            
         # river: betting round
+        print("\nBETTING STARTS")
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         if not self.bettingRound(self.gameState, 0):
             if len(self.activeAgents) == 1:
                 self.activeAgents[0].receivePot(self.pot)
-                print("WINNING AGENT: " + str(self.activeAgents[0].id))
+                print("WINNING AGENT: " + str(self.activeAgents[0].id) + " RECEIVES: " + str(self.pot) + "\n")
             return
+
+        print("\nBETTING ENDS")
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+        print("STATE OF THE AGENTS AFTER THE RIVER BETTING ROUND")
+        for a in self.activeAgents:
+            print( "AGENT: " + str(a.id) + "; PROFILE " + a.getProfile() + "; MONEY: " + str(a.money.getCurrent()) + "; TOTAL FAR: " + str(a.money.getGameBet()))
         
         for a in self.activeAgents:
             if a.money.getCurrent() <= 0:
                 self.activeAgents.remove(a)
+
         ################ SHOWDOWN PHASE ################
         self.gameState = "SHOWDOWN"
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         print("\n----- SHOWDOWN -----")
 
         best = []
         cardRank = 0
-        #print(self.gameState)
+        
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
         print("TABLE CARDS: ")
         for c in self.tableCards:
             print("CARD NUMBER: " + c.getName())
-        print("\n")
+
+        print("Press to continue")
+        while(True):
+            a = keyboard.read_key()
+            if a == '1':
+                break
+
+        print("\nPLAYERS HOLD:")
         for a in self.activeAgents:
-            print( "AGENT: " + str(a.id) + " PROFILE " + a.getProfile() + " MONEY: " + str(a.money.getCurrent()) + " BET: " + str(a.money.getGameBet()))
+            print("Press to continue")
+            while(True):
+                b = keyboard.read_key()
+                if b == '1':
+                    break
+            print("->AGENT " + str(a.id) + " HAS: " + str(ratings.handName[a.showHand()]))
+            for c in a.cardHistory:
+                print("CARD NUMBER: " + c.getName())
+
+
+        for a in self.activeAgents:
+            print( "AGENT: " + str(a.id) + "; PROFILE: " + a.getProfile() + "; MONEY: " + str(a.money.getCurrent()) + "; TOTAL BET: " + str(a.money.getGameBet()))
         
         for a in self.activeAgents:
                 if a.money.getCurrent() <= 0:
@@ -389,38 +577,49 @@ class Table:
         
         for a in best:
             a.receivePot(self.pot/len(best))
-            print("WINNING AGENT: " + str(a.id) + "\n")
+            print("WINNING AGENT: " + str(a.id) + " RECEIVES: " + str(self.pot) + "\n")
 
         return
     
   
     def game(self, rounds):
-        #print("##################### STARTING THE GAME #####################")
+        print("##################### GAME BEGINS #####################")
         r = 0
         while r < rounds:
-            #print("################### ROUND NO." + str(r+1) + " ###################")
+            
             if len(self.agents) <= 1:
                 break
             
-            print("----- GAME ROUND " + str(r) + " -----")
+            print("============= GAME ROUND " + str(r+1) + " =============")
             self.gameRound()
-            #print("we are ending the game at: " + str(self.gameState) + " with " + str(len(self.activeAgents)) + " active agents")
-            #msg = ""
+            
             for a in self.agents:
                 if a.getMoney() <= 0:
                     self.agents.pop(self.agents.index(a))
-            #    else:
-            #        msg = msg + str(a.id) + "; "
-            #print("Agents currently playing: " + msg)
+            
             self.reset(self.bigBlind)
-            #print("Reseting conditions")
+            
             r += 1
+        print("##################### GAME ENDS #####################")
 
 
 line = sys.stdin.readline()
-#environment = str(line.split(' ')[0])
 numRounds = int(line.split(' ')[0])
 numAgents = int(line.split(' ')[1])
 bigBlind = int(line.split(' ')[2])
-table = Table(numRounds, numAgents, bigBlind)
-table.game(numRounds)
+chips = int(line.split(' ')[3])
+if len(line.split(' ')) == 4:
+    table = Table(numRounds, numAgents, bigBlind, chips)
+    table.game(numRounds)
+else:
+    i = 0
+    profiles = []
+    while i < numAgents:
+        profiles.append(int(line.split(" ")[3].split(",")[i]))
+        i += 1
+    print(profiles)
+    if len(profiles) != numAgents:
+        print("Wrong number of agent profiles")
+    else:
+        table = Table(numRounds, numAgents, bigBlind, chips, profiles)
+        table.game(numRounds)

@@ -1,17 +1,22 @@
+##########################################################################
+# Gamestate controls the state of the game in Table and with the Agents.
+# This class optimizes updates in the state of the game and their
+# communication among the various entities of the game.
+##########################################################################
+
 class GameState:
 
     def __init__(self):
         self.betAmount = 0
         self.raiseAmount = 0
         self.state = None
-        #self.roundHistory = []
-        #self.roundAverage = 0
-        #self.playRecord = []
         self.canCheck = True
         self.canRaise = False
         self.possibleActions = []
     
-    # ------- getters ---------- 
+    ##################################################
+    ####                 GETTERS                 #####
+    ##################################################
 
     def getBetAmount(self):
         return self.betAmount
@@ -21,15 +26,6 @@ class GameState:
     
     def getSate(self):
         return self.state
-    
-    #def getRoundHistory(self):
-    #    return self.roundHistory
-    #
-    #def getRoundAverage(self):
-    #    return self.roundAverage
-    
-    #def getFullPlayRecord(self):
-    #    return self.fullPlayRecord
 
     def getCanCheck(self):
         return self.canCheck
@@ -40,7 +36,9 @@ class GameState:
     def getActions(self):
         return self.possibleActions
     
-    # ------ setters -------
+    ##################################################
+    ####                 SETTERS                 #####
+    ##################################################
     
     def setBetAmount(self, amount):
         self.betAmount = amount
@@ -50,12 +48,6 @@ class GameState:
     
     def setState(self, state):
         self.state = state
-
-    #def setRoundHistory(self, hist):
-    #    self.roundHistory = hist
-
-    #def setRoundAverage(self, avg):
-    #    self.roundAverage = avg
     
     def setCanCheck(self, boolean):
         self.canCheck = boolean
@@ -66,22 +58,14 @@ class GameState:
     def setActions(self, actions):
         self.possibleActions = actions
 
-    # -----------------
-
-    #def incrementRoundHistory(self, n):
-    #    self.roundHistory.append(n)
-    #
-    #def calculateRoundAverage(self):
-    #    self.roundAverage = sum(self.roundHistory)/len(self.roundHistory)
-
-    # -----------------
+    ##################################################
+    ####                 UPDATE                  #####
+    ##################################################
 
     def updateGameState(self, other):
         self.setBetAmount(other.getBetAmount())
         self.setRaiseAmount(other.getRaiseAmount())
         self.setState(other.getSate())
-        #self.setRoundHistory(other.getRoundHistory())
-        #self.setRoundAverage(other.getRoundAverage())
         self.setCanCheck(other.getCanCheck())
         self.setCanRaise(other.getCanRaise())
         self.setActions(other.getActions())
