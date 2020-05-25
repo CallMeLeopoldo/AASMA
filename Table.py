@@ -615,7 +615,7 @@ else:
     i = 0
     profiles = []
     while i < numAgents:
-        profiles.append(int(line.split(" ")[3].split(",")[i]))
+        profiles.append(int(line.split(" ")[4].split(",")[i]))
         i += 1
     print(profiles)
     if len(profiles) != numAgents:
